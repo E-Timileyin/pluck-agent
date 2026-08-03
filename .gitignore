@@ -5,3 +5,6 @@ dist/
 *.log
 .DS_Store
 worker-configuration.d.ts
+
+# wrangler dev writes these next to the entrypoint
+*.tmp.*
