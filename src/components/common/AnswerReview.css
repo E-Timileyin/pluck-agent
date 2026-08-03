@@ -1,0 +1,48 @@
+.review {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.review-item {
+  padding: 0.85rem 1rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--green);
+  border-radius: var(--radius);
+}
+
+/* #FF2E00 appears only here, so it carries meaning. */
+.review-item.is-missed {
+  border-left-color: var(--miss);
+}
+
+.review-prompt {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+
+.review-line {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.review-key {
+  flex: none;
+  width: 6.5rem;
+  color: var(--grey);
+}
+
+.review-correct span:last-child {
+  font-weight: 600;
+  color: var(--deep);
+}
+
+.review-compact .review-item {
+  padding: 0.6rem 0.75rem;
+  font-size: 0.9375rem;
+}

@@ -1,0 +1,28 @@
+.adminnav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.adminnav a,
+.adminnav-out {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0.4rem 0.7rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--mint);
+  font: inherit;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.adminnav a:hover,
+.adminnav-out:hover {
+  background: rgba(255, 255, 255, 0.12);
+}

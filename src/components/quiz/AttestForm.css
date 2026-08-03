@@ -1,0 +1,8 @@
+.attest .checkline {
+  align-items: flex-start;
+  padding: 0.25rem 0;
+}
+
+.attest .checkline span {
+  font-weight: 600;
+}

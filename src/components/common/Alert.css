@@ -1,0 +1,17 @@
+.alert {
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--radius);
+  border-left: 4px solid;
+}
+
+.alert-info {
+  background: var(--mint);
+  border-color: var(--green);
+  color: var(--deep);
+}
+
+.alert-error {
+  background: #ffe6e0;
+  border-color: var(--miss);
+  color: #7a1600;
+}

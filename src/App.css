@@ -1,0 +1,318 @@
+/* Global styles: reset, palette, typography, and the elements shared by every
+   screen (buttons, fields, tables). Component-specific rules live next to their
+   component in src/components/Name.css. */
+
+:root {
+  /* Palette lifted from the deck, so the app and the training read as one thing. */
+  --green: #09b34f;
+  --deep: #045023;
+  --mint: #dbffe5;
+  --ink: #1e1e1e;
+  --grey: #737373;
+  --paper: #ffffff;
+  --miss: #ff2e00; /* missed answers only — nowhere else, so it carries meaning */
+
+  --line: #e4e4e4;
+  --surface: #f7f8f7;
+  --radius: 10px;
+  --tap: 48px; /* every tappable element, minimum */
+  --shell: 34rem;
+  --transition: 150ms ease;
+
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 17px; /* nothing below 16px — these are outdoor screens in daylight */
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--surface);
+}
+
+body.admin {
+  --shell: 68rem;
+}
+
+h1 {
+  font-size: 1.75rem;
+  line-height: 1.25;
+  margin: 0 0 0.5rem;
+  color: var(--deep);
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin: 2rem 0 0.75rem;
+  color: var(--deep);
+}
+
+p {
+  margin: 0 0 0.75rem;
+}
+
+a {
+  color: var(--deep);
+}
+
+.shell {
+  max-width: var(--shell);
+  margin: 0 auto;
+  padding: 1.25rem 1rem 3rem;
+}
+
+.stack > * + * {
+  margin-top: 0.75rem;
+}
+
+.card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.card.narrow {
+  max-width: 22rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.lede {
+  color: var(--grey);
+}
+
+.muted {
+  color: var(--grey);
+}
+
+.small {
+  font-size: 0.9375rem; /* ≈16px — the floor */
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.eyebrow {
+  font-size: 0.875rem;
+  color: var(--grey);
+  margin-bottom: 0.25rem;
+}
+
+/* ---------------------------------------------------------------- buttons */
+
+.btn {
+  font-size: 1.0625rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap);
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.btn-primary {
+  background: var(--green);
+  color: var(--paper);
+}
+
+.btn-primary:hover {
+  background: var(--deep);
+}
+
+.btn-primary[disabled] {
+  background: var(--line);
+  color: var(--grey);
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: var(--paper);
+  border-color: var(--line);
+  color: var(--deep);
+}
+
+.btn-ghost:hover {
+  border-color: var(--deep);
+}
+
+.btn-small {
+  width: auto;
+  min-height: 40px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.875rem;
+}
+
+/* ----------------------------------------------------------------- fields */
+
+.field {
+  display: block;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.field-small {
+  flex: 0 1 9rem;
+}
+
+.label,
+legend.label {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--grey);
+  margin-bottom: 0.35rem;
+  padding: 0;
+}
+
+input[type='text'],
+input[type='tel'],
+input[type='email'],
+input[type='url'],
+input[type='number'],
+input[type='password'],
+textarea,
+select {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--green);
+  outline-offset: 2px;
+}
+
+.hint {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--grey);
+  margin-top: 0.35rem;
+}
+
+.checkline {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: var(--tap);
+  cursor: pointer;
+}
+
+.checkline input[type='checkbox'] {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--green);
+  flex: none;
+}
+
+/* ------------------------------------------------------------------ table */
+
+.tablewrap {
+  overflow-x: auto;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9375rem;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 0.7rem 0.85rem;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.table th {
+  color: var(--grey);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* ------------------------------------------------------------------- pill */
+
+.pill {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--grey);
+}
+
+.pill-pass {
+  background: var(--mint);
+  color: var(--deep);
+}
+
+.pill-fail {
+  background: #ffe6e0;
+  color: var(--miss);
+}
+
+.tag {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--grey);
+  vertical-align: middle;
+}
+
+.tag-critical {
+  background: var(--mint);
+  color: var(--deep);
+}

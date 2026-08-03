@@ -1,0 +1,3 @@
+# Copy to .dev.vars (git-ignored) for local development.
+ADMIN_PASSCODE="change-me"
+SESSION_SECRET="replace-with-32-or-more-random-characters"
