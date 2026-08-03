@@ -1,0 +1,33 @@
+name = "pluck-training"
+main = "src/index.tsx"
+compatibility_date = "2025-01-01"
+
+assets = { directory = "./public" }
+
+# Components import their own stylesheet (see CLAUDE.md). Those imports are for
+# co-location only — the browser gets the concatenated public/styles.css — so
+# treat .css as text rather than letting the bundler fail on it.
+[[rules]]
+type = "Text"
+globs = ["**/*.css"]
+fallthrough = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pluck-training"
+# Create with:  npx wrangler d1 create pluck-training --location weur
+# then paste the printed id here. The location hint matters: the default may
+# place the primary in North America, and every write from Lagos pays for it.
+database_id = "REPLACE_WITH_DATABASE_ID"
+migrations_dir = "migrations"
+
+# Secrets (never put these in this file):
+#   npx wrangler secret put ADMIN_PASSCODE
+#   npx wrangler secret put SESSION_SECRET     # 32+ random chars
+# For local dev, the same two keys go in .dev.vars (git-ignored).
+
+[vars]
+# Optional. When unset, CSRF falls back to the request's own host, which is
+# correct for both `wrangler dev` and *.workers.dev. Set it once you have a
+# custom domain.
+# ALLOWED_ORIGIN = "https://training.pluck.example"
