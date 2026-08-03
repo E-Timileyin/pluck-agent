@@ -1,0 +1,66 @@
+.progressbar {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+
+.progressbar span {
+  display: block;
+  height: 100%;
+  background: var(--green);
+  transition: width var(--transition);
+}
+
+/* The only text on the screen that matters. */
+.prompt {
+  font-size: 20px;
+  line-height: 1.4;
+  color: var(--ink);
+  margin-bottom: 1.25rem;
+}
+
+.options {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 56px;
+  padding: 0.85rem 1rem;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.option:hover {
+  background: var(--mint);
+  border-color: var(--green);
+}
+
+.option-key {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--grey);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.option-text {
+  flex: 1;
+}

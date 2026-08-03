@@ -1,0 +1,43 @@
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.tile {
+  padding: 1rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.tile-wide {
+  grid-column: 1 / -1;
+}
+
+.tile-label {
+  margin: 0;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--grey);
+}
+
+.tile-value {
+  margin: 0.25rem 0 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--deep);
+}
+
+.tile-copy {
+  margin: 0.35rem 0 0;
+  font-weight: 600;
+}
+
+.tile-note {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--grey);
+}

@@ -1,0 +1,17 @@
+.optionrow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.optionrow input[type='radio'] {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  accent-color: var(--green);
+}
+
+.qform .row {
+  align-items: center;
+}

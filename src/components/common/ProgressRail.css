@@ -1,0 +1,56 @@
+.rail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--deep);
+  color: var(--mint);
+  font-size: 0.875rem;
+}
+
+.rail-step {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  opacity: 0.65;
+  transition: opacity var(--transition), background var(--transition);
+}
+
+.rail-step + .rail-step::before {
+  content: '';
+  width: 14px;
+  height: 1px;
+  background: currentColor;
+  margin-right: 0.4rem;
+  opacity: 0.5;
+}
+
+.rail-step.is-done {
+  opacity: 0.9;
+}
+
+.rail-step.is-active {
+  opacity: 1;
+  background: var(--green);
+  color: var(--paper);
+  font-weight: 600;
+}
+
+.rail-dot {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-size: 0.75rem;
+}
+
+.rail-step.is-active .rail-dot {
+  background: var(--paper);
+  color: var(--green);
+  border-color: var(--paper);
+}

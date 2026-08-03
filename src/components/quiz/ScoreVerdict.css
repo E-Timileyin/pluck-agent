@@ -1,0 +1,48 @@
+.verdict {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  border-radius: var(--radius);
+  background: var(--mint);
+  border: 1px solid var(--green);
+  margin-bottom: 1.25rem;
+}
+
+.verdict.is-fail {
+  background: var(--paper);
+  border-color: var(--line);
+}
+
+.verdict-score {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--deep);
+}
+
+.verdict.is-fail .verdict-score {
+  color: var(--ink);
+}
+
+.verdict-percent {
+  margin: 0.25rem 0 0;
+  font-size: 1.125rem;
+  color: var(--grey);
+}
+
+.verdict-label {
+  margin: 0.5rem 0 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--deep);
+}
+
+.verdict.is-fail .verdict-label {
+  color: var(--miss);
+}
+
+.verdict-note {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+  color: var(--grey);
+}
