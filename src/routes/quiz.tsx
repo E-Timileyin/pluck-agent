@@ -16,6 +16,7 @@ import { answerSchema, attestSchema } from '../lib/validators';
 import { getAttemptId } from '../lib/session';
 import { attemptGuard } from '../middleware/attempt';
 import { gatePassed, stepFor } from '../lib/flow';
+import { shellFor } from '../lib/shell';
 import { computeResult } from '../lib/scoring';
 import { QuizPage, QuizEmptyPage } from '../pages/quiz/QuizPage';
 import { AttestPage } from '../pages/quiz/AttestPage';
@@ -38,10 +39,15 @@ app.get('/quiz', attemptGuard, async (c) => {
   // The gate covers direct navigation here too, not just the Continue button.
   if (answered === 0 && !(await gatePassed(db, attempt))) return c.redirect('/learn?early=1');
 
-  if (total === 0) return c.html(<QuizEmptyPage />);
+  const shell = await shellFor(db, attempt);
+  if (!shell) return c.redirect('/');
+
+  if (total === 0) return c.html(<QuizEmptyPage shell={shell} />);
   if (!question) return c.redirect('/attest');
 
-  return c.html(<QuizPage question={question} position={answered + 1} total={total} />);
+  return c.html(
+    <QuizPage shell={shell} question={question} position={answered + 1} total={total} />,
+  );
 });
 
 app.post(
@@ -77,11 +83,15 @@ app.get('/attest', attemptGuard, async (c) => {
 
   const db = getDb(c.env.DB);
   const { question, total } = await nextUnansweredQuestion(db, attempt.id);
-  if (total === 0) return c.html(<QuizEmptyPage />);
+  const shell = await shellFor(db, attempt);
+  if (!shell) return c.redirect('/');
+
+  if (total === 0) return c.html(<QuizEmptyPage shell={shell} />);
   if (question) return c.redirect('/quiz');
 
   return c.html(
     <AttestPage
+      shell={shell}
       error={
         c.req.query('unchecked') ? 'Tick the box to confirm you have read the rules.' : undefined
       }
@@ -131,10 +141,13 @@ app.get('/results/:id', async (c) => {
   ]);
   if (!row) return c.notFound();
 
+  const shell = await shellFor(db, attempt);
+  if (!shell) return c.notFound();
+
   return c.html(
     <ResultsPage
+      shell={shell}
       attempt={row.attempt}
-      promoter={row.promoter}
       answers={answers}
       result={computeResult(answers, settings.passMark)}
       passMark={settings.passMark}

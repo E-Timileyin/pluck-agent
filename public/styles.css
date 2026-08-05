@@ -16,6 +16,13 @@
   --paper: #ffffff;
   --miss: #ff2e00; /* missed answers only — nowhere else, so it carries meaning */
 
+  /* Amber is advisory — "read this", never "you got this wrong". Keeping it
+     clear of --miss is what lets the red keep meaning one thing. */
+  --amber-soft: #fff8e8;
+  --amber-line: #f5e3bd;
+  --amber-chip: #fcedcb;
+  --amber-ink: #8a6100;
+
   --line: #e4e4e4;
   --surface: #f7f8f7;
   --radius: 10px;
@@ -47,6 +54,25 @@ body {
 
 body.admin {
   --shell: 68rem;
+}
+
+/* Buttons do not inherit type from the page by default, and Tailwind's
+   preflight is deliberately not loaded (see src/tailwind.css) — so any button
+   not carrying .btn would fall back to the UA font without this. */
+button {
+  font: inherit;
+}
+
+/* The promoter shell paints its own near-white page with a faint green cast and
+   a soft glow in the top-right corner. */
+body.dashboard {
+  /* The comp is drawn against a 16px root; the 17px body default would scale
+     every unstyled string on this screen. */
+  font-size: 16px;
+  background-color: #fbfdfb;
+  background-image: radial-gradient(60rem 34rem at 100% 0%, rgba(9, 179, 79, 0.06), transparent 68%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 h1 {
@@ -282,6 +308,25 @@ a:focus-visible {
   border-bottom: 0;
 }
 
+/* -------------------------------------------------------------- progress */
+
+/* Used by the promoter dashboard and the admin overview, so it is a shared
+   primitive rather than either area's private style. */
+.progressbar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.progressbar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--green);
+  transition: width var(--transition);
+}
+
 /* ------------------------------------------------------------------- pill */
 
 .pill {
@@ -339,6 +384,25 @@ a:focus-visible {
 
 /* ---- components/admin/AttemptsTable.css ---- */
 
+/* Matches the tile radius so the overview reads as one surface, and gives the
+   header row the tinted band the promoter dashboard uses for its module rows. */
+.attempts {
+  border-radius: 16px;
+}
+
+.attempts .table th {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.attempts .table tbody tr:hover td {
+  background: var(--surface);
+}
+
+.attempts .table td {
+  transition: background var(--transition);
+}
+
 .table td a {
   font-weight: 600;
 }
@@ -354,14 +418,26 @@ a:focus-visible {
 }
 
 .tile {
-  padding: 1rem;
+  padding: 1.25rem;
   background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: 16px;
 }
 
 .tile-wide {
   grid-column: 1 / -1;
+}
+
+.tile-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 0.75rem;
+  border-radius: 12px;
+  background: var(--mint);
+  color: var(--deep);
 }
 
 .tile-label {
@@ -375,8 +451,15 @@ a:focus-visible {
 .tile-value {
   margin: 0.25rem 0 0;
   font-size: 1.75rem;
-  font-weight: 700;
+  font-weight: 800;
+  line-height: 1.15;
   color: var(--deep);
+}
+
+.tile-bar {
+  display: block;
+  margin: 0.6rem 0 0.1rem;
+  height: 6px;
 }
 
 .tile-copy {
@@ -385,9 +468,21 @@ a:focus-visible {
 }
 
 .tile-note {
-  margin: 0.25rem 0 0;
+  margin: 0.35rem 0 0;
   font-size: 0.875rem;
   color: var(--grey);
+}
+
+/* Amber, not red: a badly-worded question is a prompt to go and look, not a
+   failure state. --miss stays reserved for a promoter's wrong answer. */
+.tile-flag {
+  background: var(--amber-soft);
+  border-color: var(--amber-line);
+}
+
+.tile-flag .tile-icon {
+  background: var(--amber-chip);
+  color: var(--amber-ink);
 }
 
 
@@ -464,127 +559,321 @@ a:focus-visible {
 }
 
 
-/* ---- components/auth/AuthSplit.css ---- */
+/* ---- components/auth/AuthHeading.css ---- */
 
-.authsplit {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-height: 100vh;
+.authheading {
+  text-align: center;
+  margin-bottom: 1.5rem;
 }
 
-.authsplit-panel {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 2.5rem;
-  color: var(--paper);
-  background-color: var(--deep);
-  /* If public/auth-panel.jpg exists it wins; otherwise the gradient stands in. */
-  background-image: linear-gradient(160deg, rgba(4, 80, 35, 0.82), rgba(4, 80, 35, 0.97)),
-    url('/auth-panel.jpg');
-  background-size: cover;
-  background-position: center;
+.authheading-title {
+  margin: 0 0 0.4rem;
+  font-size: 2.125rem;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
 
-.authsplit-logo {
-  width: min(320px, 62%);
-  height: auto;
-}
-
-.authsplit-tagline {
-  margin: 0;
-  max-width: 26ch;
-  font-size: 1.375rem;
+.authheading-sub {
+  margin: 0 auto;
+  max-width: 24rem;
+  color: var(--grey);
+  font-size: 1.0625rem;
   line-height: 1.45;
-  color: var(--mint);
 }
 
-.authsplit-form {
+
+/* ---- components/auth/AuthPanel.css ---- */
+
+/* Below the split breakpoint the form stands alone, so the panel is simply not
+   rendered to the screen. AuthShell.css turns it back on at 62rem. */
+.authpanel {
+  display: none;
+}
+
+.authpanel-logo {
+  display: block;
+  width: auto;
+  height: 58px;
+  padding: 0.75rem 1.35rem;
+  border-radius: 16px;
+  /* public/logo.png is white-on-transparent, so it needs a dark plate even on
+     the pale panel. Swap in a dark-on-light mark and this can go. */
+}
+
+.authpanel-title {
+  margin: 0 0 1rem;
+  font-size: 2.5rem;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--deep);
+}
+
+.authpanel-blurb {
+  margin: 0 0 2.25rem;
+  max-width: 34ch;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--grey);
+}
+
+.authpanel-features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1.35rem;
+}
+
+.authfeature {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+
+.authfeature-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2.5rem 1.5rem;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--mint);
+  color: var(--deep);
+}
+
+.authfeature-title {
+  display: block;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.authfeature-copy {
+  display: block;
+  font-size: 0.9375rem;
+  color: var(--grey);
+}
+
+.authpanel-foot {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--grey);
+}
+
+
+/* ---- components/auth/AuthShell.css ---- */
+
+/* Sized to fit the viewport. The page itself never scrolls: when a screen is
+   too short for everything, the selling points drop out (TrustList.css) rather
+   than the form going out of reach. */
+
+.authshell {
+  min-height: 100dvh;
   background: var(--paper);
 }
 
-.authsplit-inner {
+.authshell-main {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  padding: 1.5rem 1rem;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+/* The soft green wash behind the card. Decorative only, so it is aria-hidden
+   and never intercepts a tap. */
+.authshell-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(38rem 26rem at 108% 6%, rgba(9, 179, 79, 0.14), transparent 70%),
+    radial-gradient(30rem 24rem at -12% 96%, rgba(9, 179, 79, 0.12), transparent 70%);
+}
+
+.authshell-inner {
+  position: relative;
   width: 100%;
-  max-width: 30rem;
+  max-width: 27rem;
+  margin: 0 auto;
 }
 
-/* Type on this screen runs a step larger than the rest of the app — it is the
-   first thing an agent sees, often outdoors. */
-.authsplit-inner .card {
-  border: 0;
-  padding: 0;
-  background: transparent;
+.authshell-brand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
 }
 
-.authsplit-inner h1 {
-  font-size: 2.5rem;
-  line-height: 1.15;
-  margin-bottom: 0.75rem;
+/* No plate: logo-dark.png is the dark-on-light mark, so it sits directly on
+   the page the way the design draws it. */
+.authshell-logo {
+  display: block;
+  width: auto;
+  height: 46px;
 }
 
-.authsplit-inner .lede {
-  font-size: 1.125rem;
-  margin-bottom: 2rem;
+.authshell-foot {
+  margin: 1rem 0 0;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--grey);
 }
 
-.authsplit-inner .label,
-.authsplit-inner legend.label {
-  font-size: 1rem;
-}
-
-.authsplit-inner input[type='text'],
-.authsplit-inner input[type='tel'],
-.authsplit-inner input[type='email'] {
-  min-height: 56px;
-  font-size: 1.125rem;
-}
-
-.authsplit-inner .tier span {
-  min-height: 56px;
-  font-size: 1.125rem;
-}
-
-.authsplit-inner .btn {
-  min-height: 58px;
-  font-size: 1.125rem;
-}
-
-@media (max-width: 860px) {
-  .authsplit {
-    grid-template-columns: 1fr;
-    min-height: 100dvh;
+/* Short screens: tighten the brand block before anything else gives. */
+@media (max-height: 46rem) {
+  .authshell-logo {
+    height: 38px;
   }
 
-  .authsplit-panel {
-    padding: 1.5rem;
-    gap: 1rem;
-    min-height: 34vh;
+  .authshell-brand {
+    margin-bottom: 0.65rem;
+  }
+}
+
+/* ------------------------------------------------------- desktop: the split */
+
+@media (min-width: 62rem) {
+  .authshell {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: 100dvh;
+    overflow: hidden;
   }
 
-  .authsplit-logo {
-    width: min(200px, 55%);
+  .authpanel {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 2.5rem;
+    overflow: hidden;
+    background: linear-gradient(165deg, #f2fbf4, #e6f7ec);
   }
 
-  .authsplit-tagline {
-    font-size: 1.0625rem;
+  .authshell-main {
+    min-height: 0;
+    height: 100dvh;
+    background: var(--paper);
+    padding: 2rem;
   }
 
-  .authsplit-form {
-    padding: 1.75rem 1rem 2.5rem;
+  .authshell-glow {
+    display: none;
   }
 
-  .authsplit-inner h1 {
-    font-size: 1.875rem;
+  /* The panel carries the brand, the copyright and the selling points on this
+     layout, so the form column drops all three rather than repeating them. */
+  .authshell-brand,
+  .authshell-foot,
+  .trustlist {
+    display: none;
+  }
+
+  .authshell-inner {
+    max-width: 25rem;
   }
 }
 
 
 /* ---- components/auth/StartForm.css ---- */
+
+.startform {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 1.25rem;
+}
+
+/* The form is the one thing that must always fit, so its rhythm tightens with
+   the viewport rather than pushing the submit button off-screen. */
+.startform.stack > * + * {
+  margin-top: 0.6rem;
+}
+
+@media (max-height: 46rem) {
+  .startform {
+    padding: 1rem;
+  }
+
+  .startform.stack > * + * {
+    margin-top: 0.45rem;
+  }
+}
+
+.startform .label {
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.startform input[type='text'],
+.startform input[type='tel'],
+.startform input[type='email'] {
+  min-height: 52px;
+  border-radius: 12px;
+}
+
+.startform-submit {
+  min-height: 54px;
+  margin-top: 0.25rem;
+  border-radius: 12px;
+  font-size: 1.125rem;
+}
+
+/* ------------------------------------------------------------ phone field */
+
+.phonefield {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.phonefield:focus-within {
+  outline: 3px solid var(--green);
+  outline-offset: 2px;
+}
+
+.phonefield-code {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: none;
+  padding: 0 0.9rem;
+  border-right: 1px solid var(--line);
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.phonefield-flag {
+  display: block;
+  width: 24px;
+  height: 16px;
+  border-radius: 2px;
+  border: 1px solid var(--line);
+}
+
+/* The wrapper draws the border and the focus ring, so the input inside draws
+   neither — otherwise they double up. */
+.startform .phonefield input[type='tel'] {
+  border: 0;
+  border-radius: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.startform .phonefield input[type='tel']:focus-visible {
+  outline: none;
+}
+
+/* ------------------------------------------------------------------ tiers */
 
 .tiers {
   display: flex;
@@ -605,9 +894,9 @@ a:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: var(--tap);
+  min-height: 48px;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: 12px;
   background: var(--paper);
   font-weight: 600;
   cursor: pointer;
@@ -623,6 +912,62 @@ a:focus-visible {
 .tier input:focus-visible + span {
   outline: 3px solid var(--green);
   outline-offset: 2px;
+}
+
+
+/* ---- components/auth/TrustList.css ---- */
+
+/* First thing to go when the viewport is too short for the whole screen — the
+   form has to fit without scrolling, these do not have to be there. */
+.trustlist {
+  display: none;
+}
+
+@media (min-height: 52rem) {
+  .trustlist {
+    list-style: none;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+  }
+}
+
+.trust {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+
+.trust-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: var(--mint);
+  color: var(--deep);
+}
+
+.trust-body {
+  display: block;
+  min-width: 0;
+}
+
+.trust-title {
+  display: block;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 0.1rem;
+}
+
+.trust-copy {
+  display: block;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  color: var(--grey);
 }
 
 
@@ -778,71 +1123,24 @@ a:focus-visible {
   color: var(--mint);
 }
 
+/* The rail sits in its own band above the page so it reads as chrome rather
+   than as the first card on the screen. */
+.railbar {
+  padding: 1rem 1rem 0.85rem;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+
+.railbar > .steprail {
+  max-width: var(--shell);
+  margin: 0 auto;
+}
+
 .foot {
   padding: 1.5rem 1rem 2rem;
   text-align: center;
   font-size: 0.8125rem;
   color: var(--grey);
-}
-
-
-/* ---- components/common/ProgressRail.css ---- */
-
-.rail {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  padding: 0.6rem 0.75rem;
-  background: var(--deep);
-  color: var(--mint);
-  font-size: 0.875rem;
-}
-
-.rail-step {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.25rem 0.6rem;
-  border-radius: 999px;
-  opacity: 0.65;
-  transition: opacity var(--transition), background var(--transition);
-}
-
-.rail-step + .rail-step::before {
-  content: '';
-  width: 14px;
-  height: 1px;
-  background: currentColor;
-  margin-right: 0.4rem;
-  opacity: 0.5;
-}
-
-.rail-step.is-done {
-  opacity: 0.9;
-}
-
-.rail-step.is-active {
-  opacity: 1;
-  background: var(--green);
-  color: var(--paper);
-  font-weight: 600;
-}
-
-.rail-dot {
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 999px;
-  border: 1px solid currentColor;
-  font-size: 0.75rem;
-}
-
-.rail-step.is-active .rail-dot {
-  background: var(--paper);
-  color: var(--green);
-  border-color: var(--paper);
 }
 
 
@@ -1082,4 +1380,727 @@ a:focus-visible {
   margin: 0.35rem 0 0;
   font-size: 0.875rem;
   color: var(--grey);
+}
+
+
+/* ---- tailwind (dashboard utilities) ---- */
+
+/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */
+@layer properties;
+@layer theme {
+  :root, :host {
+    --color-white: #fff;
+    --spacing: 0.25rem;
+    --text-xs: 0.75rem;
+    --text-xs--line-height: calc(1 / 0.75);
+    --text-sm: 0.875rem;
+    --text-sm--line-height: calc(1.25 / 0.875);
+    --text-base: 1rem;
+    --text-base--line-height: calc(1.5 / 1);
+    --text-lg: 1.125rem;
+    --text-lg--line-height: calc(1.75 / 1.125);
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --tracking-tight: -0.025em;
+    --leading-tight: 1.25;
+    --radius-xl: 0.75rem;
+    --radius-2xl: 1rem;
+    --default-transition-duration: 150ms;
+    --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    --color-brand: #09b34f;
+    --color-brand-deep: #045023;
+    --color-brand-mint: #dbffe5;
+    --color-brand-tint: #f1faf3;
+    --color-ink: #111827;
+    --color-muted: #6b7280;
+    --color-line: #e8ede9;
+    --color-step-idle: #f3f4f6;
+    --color-brand-ink: #067a38;
+  }
+}
+.pointer-events-none {
+  pointer-events: none;
+}
+.visible {
+  visibility: visible;
+}
+.absolute {
+  position: absolute;
+}
+.fixed {
+  position: fixed;
+}
+.relative {
+  position: relative;
+}
+.static {
+  position: static;
+}
+.inset-x-0 {
+  inset-inline: 0px;
+}
+.inset-x-4 {
+  inset-inline: calc(var(--spacing) * 4);
+}
+.inset-y-0 {
+  inset-block: 0px;
+}
+.-top-1 {
+  top: calc(var(--spacing) * -1);
+}
+.top-5 {
+  top: calc(var(--spacing) * 5);
+}
+.-right-1 {
+  right: calc(var(--spacing) * -1);
+}
+.-right-2 {
+  right: calc(var(--spacing) * -2);
+}
+.right-1\/2 {
+  right: calc(1 / 2 * 100%);
+}
+.bottom-0 {
+  bottom: 0px;
+}
+.left-0 {
+  left: 0px;
+}
+.z-0 {
+  z-index: 0;
+}
+.z-10 {
+  z-index: 10;
+}
+.z-20 {
+  z-index: 20;
+}
+.m-0 {
+  margin: 0px;
+}
+.mx-auto {
+  margin-inline: auto;
+}
+.my-6 {
+  margin-block: calc(var(--spacing) * 6);
+}
+.mt-1 {
+  margin-top: var(--spacing);
+}
+.mt-2 {
+  margin-top: calc(var(--spacing) * 2);
+}
+.mt-3 {
+  margin-top: calc(var(--spacing) * 3);
+}
+.mt-4 {
+  margin-top: calc(var(--spacing) * 4);
+}
+.mt-8 {
+  margin-top: calc(var(--spacing) * 8);
+}
+.mt-10 {
+  margin-top: calc(var(--spacing) * 10);
+}
+.mt-auto {
+  margin-top: auto;
+}
+.mb-1 {
+  margin-bottom: var(--spacing);
+}
+.mb-2 {
+  margin-bottom: calc(var(--spacing) * 2);
+}
+.mb-3 {
+  margin-bottom: calc(var(--spacing) * 3);
+}
+.mb-4 {
+  margin-bottom: calc(var(--spacing) * 4);
+}
+.mb-5 {
+  margin-bottom: calc(var(--spacing) * 5);
+}
+.mb-6 {
+  margin-bottom: calc(var(--spacing) * 6);
+}
+.mb-8 {
+  margin-bottom: calc(var(--spacing) * 8);
+}
+.block {
+  display: block;
+}
+.flex {
+  display: flex;
+}
+.grid {
+  display: grid;
+}
+.hidden {
+  display: none;
+}
+.inline {
+  display: inline;
+}
+.inline-flex {
+  display: inline-flex;
+}
+.table {
+  display: table;
+}
+.size-10 {
+  width: calc(var(--spacing) * 10);
+  height: calc(var(--spacing) * 10);
+}
+.size-11 {
+  width: calc(var(--spacing) * 11);
+  height: calc(var(--spacing) * 11);
+}
+.size-12 {
+  width: calc(var(--spacing) * 12);
+  height: calc(var(--spacing) * 12);
+}
+.size-14 {
+  width: calc(var(--spacing) * 14);
+  height: calc(var(--spacing) * 14);
+}
+.size-\[18px\] {
+  width: 18px;
+  height: 18px;
+}
+.h-2 {
+  height: calc(var(--spacing) * 2);
+}
+.h-8 {
+  height: calc(var(--spacing) * 8);
+}
+.h-11 {
+  height: calc(var(--spacing) * 11);
+}
+.h-12 {
+  height: calc(var(--spacing) * 12);
+}
+.h-16 {
+  height: calc(var(--spacing) * 16);
+}
+.h-\[3px\] {
+  height: 3px;
+}
+.h-\[150px\] {
+  height: 150px;
+}
+.h-full {
+  height: 100%;
+}
+.min-h-12 {
+  min-height: calc(var(--spacing) * 12);
+}
+.min-h-\[200px\] {
+  min-height: 200px;
+}
+.w-\[40\%\] {
+  width: 40%;
+}
+.w-\[160px\] {
+  width: 160px;
+}
+.w-\[300px\] {
+  width: 300px;
+}
+.w-auto {
+  width: auto;
+}
+.w-full {
+  width: 100%;
+}
+.max-w-\[34ch\] {
+  max-width: 34ch;
+}
+.max-w-\[1144px\] {
+  max-width: 1144px;
+}
+.min-w-0 {
+  min-width: 0px;
+}
+.flex-1 {
+  flex: 1;
+}
+.shrink-0 {
+  flex-shrink: 0;
+}
+.grow {
+  flex-grow: 1;
+}
+.-rotate-90 {
+  rotate: calc(90deg * -1);
+}
+.transform {
+  transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
+}
+.cursor-not-allowed {
+  cursor: not-allowed;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+.scroll-mt-8 {
+  scroll-margin-top: calc(var(--spacing) * 8);
+}
+.list-none {
+  list-style-type: none;
+}
+.flex-col {
+  flex-direction: column;
+}
+.items-center {
+  align-items: center;
+}
+.items-start {
+  align-items: flex-start;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.justify-center {
+  justify-content: center;
+}
+.gap-1 {
+  gap: var(--spacing);
+}
+.gap-1\.5 {
+  gap: calc(var(--spacing) * 1.5);
+}
+.gap-2 {
+  gap: calc(var(--spacing) * 2);
+}
+.gap-2\.5 {
+  gap: calc(var(--spacing) * 2.5);
+}
+.gap-3 {
+  gap: calc(var(--spacing) * 3);
+}
+.gap-3\.5 {
+  gap: calc(var(--spacing) * 3.5);
+}
+.gap-4 {
+  gap: calc(var(--spacing) * 4);
+}
+.gap-6 {
+  gap: calc(var(--spacing) * 6);
+}
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.overflow-hidden {
+  overflow: hidden;
+}
+.rounded-2xl {
+  border-radius: var(--radius-2xl);
+}
+.rounded-\[10px\] {
+  border-radius: 10px;
+}
+.rounded-full {
+  border-radius: calc(infinity * 1px);
+}
+.rounded-xl {
+  border-radius: var(--radius-xl);
+}
+.border {
+  border-style: var(--tw-border-style);
+  border-width: 1px;
+}
+.border-0 {
+  border-style: var(--tw-border-style);
+  border-width: 0px;
+}
+.border-2 {
+  border-style: var(--tw-border-style);
+  border-width: 2px;
+}
+.border-t {
+  border-top-style: var(--tw-border-style);
+  border-top-width: 1px;
+}
+.border-t-2 {
+  border-top-style: var(--tw-border-style);
+  border-top-width: 2px;
+}
+.border-r {
+  border-right-style: var(--tw-border-style);
+  border-right-width: 1px;
+}
+.border-dotted {
+  --tw-border-style: dotted;
+  border-style: dotted;
+}
+.border-brand {
+  border-color: var(--color-brand);
+}
+.border-line {
+  border-color: var(--color-line);
+}
+.bg-brand {
+  background-color: var(--color-brand);
+}
+.bg-brand-deep {
+  background-color: var(--color-brand-deep);
+}
+.bg-brand-mint {
+  background-color: var(--color-brand-mint);
+}
+.bg-brand-tint {
+  background-color: var(--color-brand-tint);
+}
+.bg-line {
+  background-color: var(--color-line);
+}
+.bg-step-idle {
+  background-color: var(--color-step-idle);
+}
+.bg-transparent {
+  background-color: transparent;
+}
+.bg-white {
+  background-color: var(--color-white);
+}
+.bg-white\/10 {
+  background-color: color-mix(in srgb, #fff 10%, transparent);
+  @supports (color: color-mix(in lab, red, red)) {
+    background-color: color-mix(in oklab, var(--color-white) 10%, transparent);
+  }
+}
+.bg-\[linear-gradient\(105deg\,\#045023_0\%\,\#045023_55\%\,\#023d1a_100\%\)\] {
+  background-image: linear-gradient(105deg,#045023 0%,#045023 55%,#023d1a 100%);
+}
+.p-0 {
+  padding: 0px;
+}
+.p-4 {
+  padding: calc(var(--spacing) * 4);
+}
+.p-5 {
+  padding: calc(var(--spacing) * 5);
+}
+.p-6 {
+  padding: calc(var(--spacing) * 6);
+}
+.p-7 {
+  padding: calc(var(--spacing) * 7);
+}
+.px-1 {
+  padding-inline: var(--spacing);
+}
+.px-2\.5 {
+  padding-inline: calc(var(--spacing) * 2.5);
+}
+.px-3 {
+  padding-inline: calc(var(--spacing) * 3);
+}
+.px-3\.5 {
+  padding-inline: calc(var(--spacing) * 3.5);
+}
+.px-4 {
+  padding-inline: calc(var(--spacing) * 4);
+}
+.px-7 {
+  padding-inline: calc(var(--spacing) * 7);
+}
+.py-1 {
+  padding-block: var(--spacing);
+}
+.py-2 {
+  padding-block: calc(var(--spacing) * 2);
+}
+.py-3\.5 {
+  padding-block: calc(var(--spacing) * 3.5);
+}
+.py-6 {
+  padding-block: calc(var(--spacing) * 6);
+}
+.pt-2 {
+  padding-top: calc(var(--spacing) * 2);
+}
+.pt-4 {
+  padding-top: calc(var(--spacing) * 4);
+}
+.pb-24 {
+  padding-bottom: calc(var(--spacing) * 24);
+}
+.pb-\[env\(safe-area-inset-bottom\,0px\)\] {
+  padding-bottom: env(safe-area-inset-bottom,0px);
+}
+.text-center {
+  text-align: center;
+}
+.text-right {
+  text-align: right;
+}
+.text-\[13px\]\/\[1\.5\] {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.text-\[15px\]\/\[1\.5\] {
+  font-size: 15px;
+  line-height: 1.5;
+}
+.text-base {
+  font-size: var(--text-base);
+  line-height: var(--tw-leading, var(--text-base--line-height));
+}
+.text-lg {
+  font-size: var(--text-lg);
+  line-height: var(--tw-leading, var(--text-lg--line-height));
+}
+.text-sm {
+  font-size: var(--text-sm);
+  line-height: var(--tw-leading, var(--text-sm--line-height));
+}
+.text-sm\/\[1\.6\] {
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+.text-xs {
+  font-size: var(--text-xs);
+  line-height: var(--tw-leading, var(--text-xs--line-height));
+}
+.text-\[11px\] {
+  font-size: 11px;
+}
+.text-\[13px\] {
+  font-size: 13px;
+}
+.text-\[15px\] {
+  font-size: 15px;
+}
+.text-\[26px\] {
+  font-size: 26px;
+}
+.text-\[28px\] {
+  font-size: 28px;
+}
+.leading-none {
+  --tw-leading: 1;
+  line-height: 1;
+}
+.leading-tight {
+  --tw-leading: var(--leading-tight);
+  line-height: var(--leading-tight);
+}
+.font-bold {
+  --tw-font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-bold);
+}
+.font-medium {
+  --tw-font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-medium);
+}
+.font-semibold {
+  --tw-font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-semibold);
+}
+.tracking-tight {
+  --tw-tracking: var(--tracking-tight);
+  letter-spacing: var(--tracking-tight);
+}
+.text-brand {
+  color: var(--color-brand);
+}
+.text-brand-deep {
+  color: var(--color-brand-deep);
+}
+.text-brand-ink {
+  color: var(--color-brand-ink);
+}
+.text-ink {
+  color: var(--color-ink);
+}
+.text-muted {
+  color: var(--color-muted);
+}
+.text-white {
+  color: var(--color-white);
+}
+.text-white\/80 {
+  color: color-mix(in srgb, #fff 80%, transparent);
+  @supports (color: color-mix(in lab, red, red)) {
+    color: color-mix(in oklab, var(--color-white) 80%, transparent);
+  }
+}
+.no-underline {
+  text-decoration-line: none;
+}
+.opacity-50 {
+  opacity: 50%;
+}
+.transition-colors {
+  transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
+  transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+  transition-duration: var(--tw-duration, var(--default-transition-duration));
+}
+.duration-150 {
+  --tw-duration: 150ms;
+  transition-duration: 150ms;
+}
+@media (hover: hover) {
+  .hover\:bg-brand-tint:hover {
+    background-color: var(--color-brand-tint);
+  }
+  .hover\:underline:hover {
+    text-decoration-line: underline;
+  }
+}
+.disabled\:cursor-not-allowed:disabled {
+  cursor: not-allowed;
+}
+.disabled\:opacity-50:disabled {
+  opacity: 50%;
+}
+@media (width >= 40rem) {
+  .sm\:flex {
+    display: flex;
+  }
+  .sm\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (width >= 64rem) {
+  .lg\:inset-x-6 {
+    inset-inline: calc(var(--spacing) * 6);
+  }
+  .lg\:mt-0 {
+    margin-top: 0px;
+  }
+  .lg\:mt-1 {
+    margin-top: var(--spacing);
+  }
+  .lg\:mt-3 {
+    margin-top: calc(var(--spacing) * 3);
+  }
+  .lg\:block {
+    display: block;
+  }
+  .lg\:flex {
+    display: flex;
+  }
+  .lg\:hidden {
+    display: none;
+  }
+  .lg\:inline-block {
+    display: inline-block;
+  }
+  .lg\:inline-flex {
+    display: inline-flex;
+  }
+  .lg\:w-\[296px\] {
+    width: 296px;
+  }
+  .lg\:max-w-\[62\%\] {
+    max-width: 62%;
+  }
+  .lg\:max-w-\[760px\] {
+    max-width: 760px;
+  }
+  .lg\:grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  .lg\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .lg\:flex-row {
+    flex-direction: row;
+  }
+  .lg\:items-start {
+    align-items: flex-start;
+  }
+  .lg\:gap-5 {
+    gap: calc(var(--spacing) * 5);
+  }
+  .lg\:p-6 {
+    padding: calc(var(--spacing) * 6);
+  }
+  .lg\:p-8 {
+    padding: calc(var(--spacing) * 8);
+  }
+  .lg\:px-8 {
+    padding-inline: calc(var(--spacing) * 8);
+  }
+  .lg\:py-8 {
+    padding-block: calc(var(--spacing) * 8);
+  }
+  .lg\:pb-0 {
+    padding-bottom: 0px;
+  }
+  .lg\:pl-\[300px\] {
+    padding-left: 300px;
+  }
+  .lg\:text-base {
+    font-size: var(--text-base);
+    line-height: var(--tw-leading, var(--text-base--line-height));
+  }
+  .lg\:text-\[13px\] {
+    font-size: 13px;
+  }
+  .lg\:text-\[36px\] {
+    font-size: 36px;
+  }
+}
+@property --tw-rotate-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-rotate-y {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-rotate-z {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-skew-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-skew-y {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-border-style {
+  syntax: "*";
+  inherits: false;
+  initial-value: solid;
+}
+@property --tw-leading {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-font-weight {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-tracking {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-duration {
+  syntax: "*";
+  inherits: false;
+}
+@layer properties {
+  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {
+    *, ::before, ::after, ::backdrop {
+      --tw-rotate-x: initial;
+      --tw-rotate-y: initial;
+      --tw-rotate-z: initial;
+      --tw-skew-x: initial;
+      --tw-skew-y: initial;
+      --tw-border-style: solid;
+      --tw-leading: initial;
+      --tw-font-weight: initial;
+      --tw-tracking: initial;
+      --tw-duration: initial;
+    }
+  }
 }

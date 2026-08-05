@@ -1,18 +1,20 @@
 import { Layout } from '../../components/common/Layout';
-import { AuthSplit } from '../../components/auth/AuthSplit';
+import { AuthShell } from '../../components/auth/AuthShell';
+import { AuthHeading } from '../../components/auth/AuthHeading';
 import { StartForm, type StartValues } from '../../components/auth/StartForm';
+import { TrustList } from '../../components/auth/TrustList';
 
 export function StartPage(props: { values?: StartValues; errors?: Record<string, string> }) {
   return (
     <Layout title="Get started" variant="auth">
-      <AuthSplit>
-        <h1>Sales Promoter Training</h1>
-        <p class="lede">
-          A short training on commission, credit checks and conduct rules, then a quiz. About 15
-          minutes.
-        </p>
+      <AuthShell>
+        <AuthHeading
+          title="Welcome back!"
+          sub="Sign in with your phone number to continue your training journey."
+        />
         <StartForm values={props.values} errors={props.errors} />
-      </AuthSplit>
+        <TrustList />
+      </AuthShell>
     </Layout>
   );
 }

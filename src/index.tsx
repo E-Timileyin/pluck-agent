@@ -5,6 +5,7 @@ import { logger } from 'hono/logger';
 import { HTTPException } from 'hono/http-exception';
 import type { AppEnv } from './types';
 import auth from './routes/auth';
+import dashboard from './routes/dashboard';
 import learn from './routes/learn';
 import quiz from './routes/quiz';
 import admin from './routes/admin';
@@ -31,6 +32,7 @@ app.use('*', logger());
 // Entry, training and quiz are separate routers: only the last two need an
 // attempt to already exist, and only they carry the progress rail.
 app.route('/', auth);
+app.route('/dashboard', dashboard);
 app.route('/learn', learn);
 app.route('/', quiz);
 app.route('/admin', admin);

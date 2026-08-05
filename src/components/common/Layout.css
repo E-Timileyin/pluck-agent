@@ -32,6 +32,19 @@
   color: var(--mint);
 }
 
+/* The rail sits in its own band above the page so it reads as chrome rather
+   than as the first card on the screen. */
+.railbar {
+  padding: 1rem 1rem 0.85rem;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+
+.railbar > .steprail {
+  max-width: var(--shell);
+  margin: 0 auto;
+}
+
 .foot {
   padding: 1.5rem 1rem 2rem;
   text-align: center;

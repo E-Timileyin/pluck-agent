@@ -12,6 +12,13 @@
   --paper: #ffffff;
   --miss: #ff2e00; /* missed answers only — nowhere else, so it carries meaning */
 
+  /* Amber is advisory — "read this", never "you got this wrong". Keeping it
+     clear of --miss is what lets the red keep meaning one thing. */
+  --amber-soft: #fff8e8;
+  --amber-line: #f5e3bd;
+  --amber-chip: #fcedcb;
+  --amber-ink: #8a6100;
+
   --line: #e4e4e4;
   --surface: #f7f8f7;
   --radius: 10px;
@@ -43,6 +50,25 @@ body {
 
 body.admin {
   --shell: 68rem;
+}
+
+/* Buttons do not inherit type from the page by default, and Tailwind's
+   preflight is deliberately not loaded (see src/tailwind.css) — so any button
+   not carrying .btn would fall back to the UA font without this. */
+button {
+  font: inherit;
+}
+
+/* The promoter shell paints its own near-white page with a faint green cast and
+   a soft glow in the top-right corner. */
+body.dashboard {
+  /* The comp is drawn against a 16px root; the 17px body default would scale
+     every unstyled string on this screen. */
+  font-size: 16px;
+  background-color: #fbfdfb;
+  background-image: radial-gradient(60rem 34rem at 100% 0%, rgba(9, 179, 79, 0.06), transparent 68%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 h1 {
@@ -276,6 +302,25 @@ a:focus-visible {
 
 .table tbody tr:last-child td {
   border-bottom: 0;
+}
+
+/* -------------------------------------------------------------- progress */
+
+/* Used by the promoter dashboard and the admin overview, so it is a shared
+   primitive rather than either area's private style. */
+.progressbar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.progressbar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--green);
+  transition: width var(--transition);
 }
 
 /* ------------------------------------------------------------------- pill */

@@ -10,7 +10,7 @@ export function AttemptsTable(props: { rows: AttemptRow[] }) {
   }
 
   return (
-    <div class="tablewrap">
+    <div class="tablewrap attempts">
       <table class="table">
         <thead>
           <tr>

@@ -1,22 +1,24 @@
-import { Layout } from '../../components/common/Layout';
+import { PromoterShell } from '../../components/common/PromoterShell';
 import { Alert } from '../../components/common/Alert';
 import { TutorialChoice } from '../../components/learn/TutorialChoice';
 import { TutorialEmbed } from '../../components/learn/TutorialEmbed';
 import { ContinueGate } from '../../components/learn/ContinueGate';
-import type { Settings, TutorialMode } from '../../db/schema';
+import type { TutorialMode } from '../../db/schema';
+import type { Shell } from '../../lib/shell';
 
 export function LearnPage(props: {
-  settings: Settings;
+  shell: Shell;
   mode: TutorialMode | null;
   remainingSeconds: number;
   error?: string;
 }) {
-  const { settings, mode } = props;
+  const { settings } = props.shell;
+  const { mode } = props;
   const configured = !!settings.slidesUrl || !!settings.videoUrl;
 
   if (!mode) {
     return (
-      <Layout title="Training" step="learn">
+      <PromoterShell title="Training" shell={props.shell} active="training" showRail>
         <h1>Training material</h1>
         <p class="lede">Pick one. You can switch at any time — the timer keeps running.</p>
         {props.error ? <Alert tone="error">{props.error}</Alert> : null}
@@ -28,7 +30,7 @@ export function LearnPage(props: {
             Drive links in Admin → Settings before this screen will work.
           </Alert>
         )}
-      </Layout>
+      </PromoterShell>
     );
   }
 
@@ -37,12 +39,12 @@ export function LearnPage(props: {
   const otherUrl = other === 'video' ? settings.videoUrl : settings.slidesUrl;
 
   return (
-    <Layout title="Training" step="learn" script>
+    <PromoterShell title="Training" shell={props.shell} active="training" showRail script>
       <h1>{mode === 'video' ? 'Training video' : 'Training slides'}</h1>
       {props.error ? <Alert tone="error">{props.error}</Alert> : null}
       <TutorialEmbed mode={mode} src={src} />
       <ContinueGate remainingSeconds={props.remainingSeconds} otherMode={otherUrl ? other : null} />
-    </Layout>
+    </PromoterShell>
   );
 }
 

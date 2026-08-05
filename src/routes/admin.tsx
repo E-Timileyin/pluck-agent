@@ -23,7 +23,8 @@ import {
   rawQuestionValues,
   settingsSchema,
 } from '../lib/validators';
-import { clearAdminCookie, isAdmin, passcodeMatches, setAdminCookie } from '../lib/session';
+// isAdmin() stays exported in lib/session for whoever restores the guard.
+import { clearAdminCookie, passcodeMatches, setAdminCookie } from '../lib/session';
 import { toSlidesEmbed, toVideoEmbed } from '../lib/drive';
 import { LoginPage } from '../pages/admin/LoginPage';
 import { DashboardPage } from '../pages/admin/DashboardPage';
@@ -38,11 +39,20 @@ const dbOf = (c: { env: unknown }) => getDb((c.env as Bindings).DB);
 
 /* -------------------------------------------------------------------- guard */
 
-app.use('*', async (c, next) => {
-  if (c.req.path === '/admin/login') return next();
-  if (!(await isAdmin(c))) return c.redirect('/admin/login');
-  await next();
-});
+/**
+ * DEMO BUILD — the passcode gate is off.
+ *
+ * This was the app's only real authentication. With it removed, /admin and
+ * every promoter's name and phone number are reachable by anyone who knows the
+ * URL, so this build must not be deployed anywhere public.
+ *
+ * To restore, put back:
+ *   app.use('*', async (c, next) => {
+ *     if (c.req.path === '/admin/login') return next();
+ *     if (!(await isAdmin(c))) return c.redirect('/admin/login');
+ *     await next();
+ *   });
+ */
 
 app.get('/login', (c) => c.html(<LoginPage />));
 

@@ -1,3 +1,22 @@
+/* Matches the tile radius so the overview reads as one surface, and gives the
+   header row the tinted band the promoter dashboard uses for its module rows. */
+.attempts {
+  border-radius: 16px;
+}
+
+.attempts .table th {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.attempts .table tbody tr:hover td {
+  background: var(--surface);
+}
+
+.attempts .table td {
+  transition: background var(--transition);
+}
+
 .table td a {
   font-weight: 600;
 }

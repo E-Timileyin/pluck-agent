@@ -1,0 +1,52 @@
+/* First thing to go when the viewport is too short for the whole screen — the
+   form has to fit without scrolling, these do not have to be there. */
+.trustlist {
+  display: none;
+}
+
+@media (min-height: 52rem) {
+  .trustlist {
+    list-style: none;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+  }
+}
+
+.trust {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+
+.trust-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: var(--mint);
+  color: var(--deep);
+}
+
+.trust-body {
+  display: block;
+  min-width: 0;
+}
+
+.trust-title {
+  display: block;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 0.1rem;
+}
+
+.trust-copy {
+  display: block;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  color: var(--grey);
+}

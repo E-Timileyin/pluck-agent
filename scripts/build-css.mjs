@@ -1,15 +1,21 @@
 /**
- * Concatenates the global stylesheet and every co-located component stylesheet
- * into public/styles.css.
+ * Builds public/styles.css: the global stylesheet, then every co-located
+ * component stylesheet, then Tailwind's utilities.
  *
  * Component CSS lives next to its component (Component.tsx / Component.css) per
- * the project convention in CLAUDE.md. Nothing else here is a build step: no
- * bundler, no dependencies, no transform — just a deterministic concat so the
- * browser still gets one small static file.
+ * the project convention in CLAUDE.md. The dashboard is the exception it is
+ * written in Tailwind utilities, generated from src/tailwind.css and appended
+ * last so those utilities win on equal specificity.
+ *
+ * The browser still gets one small static file.
  */
+import { execFile } from 'node:child_process';
 import { readdir, readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
+import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
+
+const run = promisify(execFile);
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const globalCss = join(root, 'src', 'App.css');
@@ -39,6 +45,20 @@ for (const file of files) {
   parts.push(await readFile(file.path, 'utf8'));
 }
 
+// Tailwind scans the dashboard sources itself (see the @source lines in
+// src/tailwind.css) and prints the generated CSS to stdout.
+const tailwindIn = join(root, 'src', 'tailwind.css');
+const { stdout: tailwind } = await run(
+  'npx',
+  ['@tailwindcss/cli', '--input', tailwindIn, '--cwd', root],
+  { cwd: root, maxBuffer: 32 * 1024 * 1024 },
+);
+
+parts.push('/* ---- tailwind (dashboard utilities) ---- */');
+parts.push(tailwind);
+
 await mkdir(dirname(out), { recursive: true });
 await writeFile(out, parts.join('\n\n').trimEnd() + '\n');
-console.log(`styles.css ← App.css + ${files.length} component stylesheets`);
+console.log(
+  `styles.css ← App.css + ${files.length} component stylesheets + tailwind (${(tailwind.length / 1024).toFixed(1)} kB)`,
+);

@@ -6,14 +6,26 @@
 }
 
 .tile {
-  padding: 1rem;
+  padding: 1.25rem;
   background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: 16px;
 }
 
 .tile-wide {
   grid-column: 1 / -1;
+}
+
+.tile-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 0.75rem;
+  border-radius: 12px;
+  background: var(--mint);
+  color: var(--deep);
 }
 
 .tile-label {
@@ -27,8 +39,15 @@
 .tile-value {
   margin: 0.25rem 0 0;
   font-size: 1.75rem;
-  font-weight: 700;
+  font-weight: 800;
+  line-height: 1.15;
   color: var(--deep);
+}
+
+.tile-bar {
+  display: block;
+  margin: 0.6rem 0 0.1rem;
+  height: 6px;
 }
 
 .tile-copy {
@@ -37,7 +56,19 @@
 }
 
 .tile-note {
-  margin: 0.25rem 0 0;
+  margin: 0.35rem 0 0;
   font-size: 0.875rem;
   color: var(--grey);
+}
+
+/* Amber, not red: a badly-worded question is a prompt to go and look, not a
+   failure state. --miss stays reserved for a promoter's wrong answer. */
+.tile-flag {
+  background: var(--amber-soft);
+  border-color: var(--amber-line);
+}
+
+.tile-flag .tile-icon {
+  background: var(--amber-chip);
+  color: var(--amber-ink);
 }
