@@ -1,35 +1,51 @@
+import { Card } from '../common/Card';
+import { StatusPill } from '../common/StatusPill';
 import { AnswerReview } from '../common/AnswerReview';
 import type { Answer, Attempt } from '../../db/schema';
 import { formatDate } from '../../lib/format';
-import './AttemptHistory.css';
 
+/**
+ * Every attempt this promoter has made, newest first, each with the answers it
+ * produced — rendered from the stored snapshot, so editing a question never
+ * rewrites what somebody was asked.
+ */
 export function AttemptHistory(props: {
   attempts: Attempt[];
   answersByAttempt: Map<string, Answer[]>;
 }) {
   return (
-    <div class="history">
+    <div class="grid gap-4">
       {props.attempts.map((attempt, i) => {
         const answers = props.answersByAttempt.get(attempt.id) ?? [];
+        const number = props.attempts.length - i;
+
         return (
-          <section class="card stack">
-            <h2 class="history-head">
-              Attempt {props.attempts.length - i}
-              {attempt.submittedAt ? (
-                <span class={attempt.passed ? 'pill pill-pass' : 'pill pill-fail'}>
+          <Card
+            title={`Attempt ${number}`}
+            sub={[
+              `Started ${formatDate(attempt.startedAt)}`,
+              `format ${attempt.tutorialMode ?? '—'}`,
+              attempt.submittedAt ? `scored ${attempt.score}/${attempt.total}` : 'not submitted',
+              attempt.attestedAt
+                ? `rules confirmed ${formatDate(attempt.attestedAt)}`
+                : 'not attested',
+            ].join(' · ')}
+            aside={
+              attempt.submittedAt ? (
+                <StatusPill tone={attempt.passed ? 'pass' : 'miss'}>
                   {attempt.passed ? 'Pass' : 'Fail'}
-                </span>
+                </StatusPill>
               ) : (
-                <span class="pill">In progress</span>
-              )}
-            </h2>
-            <p class="muted small">
-              Started {formatDate(attempt.startedAt)} · format {attempt.tutorialMode ?? '—'} ·{' '}
-              {attempt.submittedAt ? `scored ${attempt.score}/${attempt.total}` : 'not submitted'} ·{' '}
-              {attempt.attestedAt ? `rules confirmed ${formatDate(attempt.attestedAt)}` : 'not attested'}
-            </p>
-            {answers.length > 0 ? <AnswerReview answers={answers} compact /> : null}
-          </section>
+                <StatusPill>In progress</StatusPill>
+              )
+            }
+          >
+            {answers.length > 0 ? (
+              <AnswerReview answers={answers} compact />
+            ) : (
+              <p class="m-0 text-[15px] text-muted">No answers recorded on this attempt.</p>
+            )}
+          </Card>
         );
       })}
     </div>
