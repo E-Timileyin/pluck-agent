@@ -1,8 +1,11 @@
-import type { Attempt } from './db/schema';
+import type { Admin, Attempt } from './db/schema';
 
 export type Bindings = {
   DB: D1Database;
-  /** Shared secret for /admin/login. Not authentication — see tech-stack.md. */
+  /**
+   * One-time setup key for creating the first admin account. Sign-in itself
+   * uses named accounts in the `admins` table, not this.
+   */
   ADMIN_PASSCODE: string;
   /** 32+ random chars. Signs both cookies. */
   SESSION_SECRET: string;
@@ -14,3 +17,6 @@ export type AppEnv = { Bindings: Bindings };
 
 /** Agent routes behind the attempt-cookie guard get the loaded attempt. */
 export type AgentEnv = AppEnv & { Variables: { attempt: Attempt } };
+
+/** Console routes behind the admin guard get the account that signed in. */
+export type AdminEnv = AppEnv & { Variables: { admin: Admin } };

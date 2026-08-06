@@ -42,14 +42,19 @@ export function clearAttemptCookie<E extends Env>(c: Context<E>): void {
   deleteCookie(c, ATTEMPT_COOKIE, { path: '/' });
 }
 
-export async function setAdminCookie<E extends Env>(c: Context<E>) {
-  await setSignedCookie(c, ADMIN_COOKIE, 'ok', secretOf(c), optionsFor(c, ADMIN_TTL));
+/**
+ * The cookie carries *which* admin signed in, not a yes/no — every screen that
+ * needs a name (and every future audit line) reads it from here rather than
+ * assuming a single shared operator.
+ */
+export async function setAdminCookie<E extends Env>(c: Context<E>, adminId: string) {
+  await setSignedCookie(c, ADMIN_COOKIE, adminId, secretOf(c), optionsFor(c, ADMIN_TTL));
 }
 
-export async function isAdmin<E extends Env>(c: Context<E>): Promise<boolean> {
-  // Unsigned would mean anyone types admin_session=1 in devtools and walks in.
+export async function getAdminId<E extends Env>(c: Context<E>): Promise<string | null> {
+  // Unsigned would mean anyone types admin_session=<any id> in devtools and walks in.
   const value = await getSignedCookie(c, secretOf(c), ADMIN_COOKIE);
-  return value === 'ok';
+  return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
 export function clearAdminCookie<E extends Env>(c: Context<E>): void {
@@ -57,7 +62,7 @@ export function clearAdminCookie<E extends Env>(c: Context<E>): void {
 }
 
 /** Compare digests, not raw strings — `===` on secrets leaks length and prefix. */
-export async function passcodeMatches(supplied: string, expected: string): Promise<boolean> {
+export async function secretMatches(supplied: string, expected: string): Promise<boolean> {
   if (!expected) return false;
   const [a, b] = await Promise.all([sha256(supplied), sha256(expected)]);
   if (a.length !== b.length) return false;
