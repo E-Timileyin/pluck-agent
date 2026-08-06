@@ -1,4 +1,24 @@
-import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, index, customType } from 'drizzle-orm/sqlite-core';
+
+/**
+ * A BLOB column that hands D1 the bytes and takes them back unchanged.
+ *
+ * Drizzle's own `blob({ mode: 'buffer' })` maps to a Node Buffer, which workerd
+ * does not have — an ArrayBuffer passed to it is stringified on the way in, and
+ * what comes back out is the text "137,80,78,71,…" rather than a PNG. D1 binds
+ * an ArrayBuffer as a BLOB natively, so the honest mapping is no mapping.
+ */
+const bytes = customType<{ data: ArrayBuffer; driverData: ArrayBuffer | number[] }>({
+  dataType: () => 'blob',
+
+  // D1 binds an ArrayBuffer as a BLOB natively, so writing is a pass-through.
+  toDriver: (value) => value,
+
+  // Reading is not: D1 hands a BLOB back as a plain array of byte values, and
+  // handing that to a Response body yields the *text* "137,80,78,71,…" — a
+  // 205-byte "image" that every browser refuses to draw.
+  fromDriver: (value) => (Array.isArray(value) ? new Uint8Array(value).buffer : value),
+});
 
 export const settings = sqliteTable('settings', {
   id: integer('id').primaryKey(), // always 1
@@ -6,7 +26,30 @@ export const settings = sqliteTable('settings', {
   slidesUrl: text('slides_url'),
   minTutorialSeconds: integer('min_tutorial_seconds').notNull().default(45),
   passMark: integer('pass_mark').notNull().default(80),
+  /**
+   * Who a stuck promoter should contact. Both optional: the Support screen says
+   * plainly that no desk is published rather than inventing a number.
+   */
+  supportPhone: text('support_phone'), // stored as +234XXXXXXXXXX
+  supportEmail: text('support_email'),
   updatedAt: text('updated_at').notNull(),
+});
+
+/**
+ * Named accounts for the training console. This replaces the single shared
+ * passcode: every sign-in is now somebody, and `lastLoginAt` is the beginning
+ * of the audit trail the README lists as missing.
+ *
+ * `passwordHash` is the self-describing PBKDF2 string from lib/password.ts —
+ * never a raw password, and never reversible.
+ */
+export const admins = sqliteTable('admins', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(), // stored lower-cased
+  passwordHash: text('password_hash').notNull(),
+  createdAt: text('created_at').notNull(),
+  lastLoginAt: text('last_login_at'),
 });
 
 export const questions = sqliteTable(
@@ -33,6 +76,24 @@ export const promoters = sqliteTable('promoters', {
     .default('SP3'),
   email: text('email'), // optional
   createdAt: text('created_at').notNull(),
+});
+
+/**
+ * Profile photos, one per sales agent, kept out of `promoters` on purpose: that
+ * row is read on every single request to build the shell, and a blob column
+ * would be dragged along with it every time.
+ *
+ * The bytes live in D1 rather than R2 so the app keeps exactly one storage
+ * binding. That is a size ceiling, not a free lunch — the upload route caps
+ * what it accepts, and there is no resizing at the edge to fall back on.
+ */
+export const promoterPhotos = sqliteTable('promoter_photos', {
+  promoterId: text('promoter_id')
+    .primaryKey()
+    .references(() => promoters.id, { onDelete: 'cascade' }),
+  mime: text('mime').notNull(),
+  data: bytes('data').notNull(),
+  updatedAt: text('updated_at').notNull(),
 });
 
 export const attempts = sqliteTable(
@@ -80,6 +141,8 @@ export type QuestionSnapshot = {
 };
 
 export type Settings = typeof settings.$inferSelect;
+export type Admin = typeof admins.$inferSelect;
+export type PromoterPhoto = typeof promoterPhotos.$inferSelect;
 export type Question = typeof questions.$inferSelect;
 export type Promoter = typeof promoters.$inferSelect;
 export type Attempt = typeof attempts.$inferSelect;

@@ -9,6 +9,7 @@ import {
   getQuestion,
   getSettings,
   listAnswers,
+  listAttemptsForPromoter,
   nextUnansweredQuestion,
   recordAnswer,
 } from '../db/queries';
@@ -21,6 +22,7 @@ import { computeResult } from '../lib/scoring';
 import { QuizPage, QuizEmptyPage } from '../pages/quiz/QuizPage';
 import { AttestPage } from '../pages/quiz/AttestPage';
 import { ResultsPage } from '../pages/quiz/ResultsPage';
+import { ResultsListPage } from '../pages/results/ResultsListPage';
 
 // Mounted at '/', so the attempt guard is attached per route rather than with a
 // wildcard `use` — a wildcard here also runs for /admin and /results.
@@ -123,16 +125,43 @@ app.post(
 
 /* ------------------------------------------------------------------ results */
 
-// Outside the guard on purpose: a missing or mismatched cookie must 404 rather
-// than redirect, otherwise result URLs are enumerable.
+/** Every attempt this promoter has made — the nav's "My Results" lands here. */
+app.get('/results', attemptGuard, async (c) => {
+  const attempt = c.get('attempt');
+  const db = getDb(c.env.DB);
+
+  const shell = await shellFor(db, attempt);
+  if (!shell) return c.redirect('/');
+
+  return c.html(
+    <ResultsListPage
+      shell={shell}
+      attempts={await listAttemptsForPromoter(db, shell.promoter.id)}
+      resumeHref={await stepFor(db, attempt)}
+    />,
+  );
+});
+
+// Outside the guard on purpose: an unknown cookie must 404 rather than
+// redirect, otherwise result URLs are enumerable.
 app.get('/results/:id', async (c) => {
   const attemptId = await getAttemptId(c);
-  if (!attemptId || attemptId !== c.req.param('id')) return c.notFound();
+  if (!attemptId) return c.notFound();
 
   const db = getDb(c.env.DB);
-  const attempt = await getAttempt(db, attemptId);
+  const attempt = await getAttempt(db, c.req.param('id'));
   if (!attempt) return c.notFound();
-  if (!attempt.submittedAt) return c.redirect(await stepFor(db, attempt));
+
+  // Your own history is yours to read, so the check is on the promoter behind
+  // the cookie rather than on the exact attempt — a stranger's id still 404s.
+  const current = await getAttempt(db, attemptId);
+  if (!current || current.promoterId !== attempt.promoterId) return c.notFound();
+
+  // Nothing to show yet: the attempt in hand goes to wherever it belongs, an
+  // older unfinished one to the list it came from.
+  if (!attempt.submittedAt) {
+    return c.redirect(attempt.id === current.id ? await stepFor(db, attempt) : '/results');
+  }
 
   const [row, answers, settings] = await Promise.all([
     getAttemptWithPromoter(db, attempt.id),

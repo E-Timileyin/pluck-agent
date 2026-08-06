@@ -8,6 +8,27 @@
       "when": 1785768728039,
       "tag": "0000_steep_shooting_star",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1785971572528,
+      "tag": "0001_easy_logan",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1785976595087,
+      "tag": "0002_demonic_multiple_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1785984973526,
+      "tag": "0003_red_stranger",
+      "breakpoints": true
     }
   ]
 }

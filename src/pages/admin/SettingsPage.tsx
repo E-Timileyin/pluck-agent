@@ -1,24 +1,39 @@
-import { Layout } from '../../components/common/Layout';
+import { AdminShell } from '../../components/admin/AdminShell';
 import { Alert } from '../../components/common/Alert';
 import { SettingsForm } from '../../components/admin/SettingsForm';
-import type { Settings } from '../../db/schema';
+import { TeamCard } from '../../components/admin/TeamCard';
+import type { Admin, Settings } from '../../db/schema';
 
 export function SettingsPage(props: {
+  admin: Admin;
   settings: Settings;
-  values?: { videoUrl?: string; slidesUrl?: string };
+  admins: Admin[];
+  values?: { videoUrl?: string; slidesUrl?: string; supportPhone?: string; supportEmail?: string };
   errors?: Record<string, string>;
-  saved?: boolean;
+  teamValues?: { name?: string; email?: string };
+  teamErrors?: Record<string, string>;
+  notice?: string;
 }) {
   return (
-    <Layout title="Settings" variant="admin">
-      <h1>Settings</h1>
-      {props.saved ? <Alert tone="info">Saved.</Alert> : null}
-      <SettingsForm settings={props.settings} values={props.values} errors={props.errors} />
-      <p class="muted small">
-        Paste the normal share link — the file ID is extracted and the embed URL is what gets
-        stored, so /learn does no parsing at render.
-      </p>
-    </Layout>
+    <AdminShell
+      title="Settings"
+      active="settings"
+      admin={props.admin}
+      sub="What the sales agents see, the rules they are judged by, and who can change either."
+    >
+      {props.notice ? <Alert tone="info">{props.notice}</Alert> : null}
+
+      <div class="grid gap-4">
+        <SettingsForm settings={props.settings} values={props.values} errors={props.errors} />
+
+        <TeamCard
+          admins={props.admins}
+          currentId={props.admin.id}
+          values={props.teamValues}
+          errors={props.teamErrors}
+        />
+      </div>
+    </AdminShell>
   );
 }
 

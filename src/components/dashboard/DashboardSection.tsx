@@ -6,8 +6,8 @@ import type { Child } from 'hono/jsx';
  */
 export function DashboardSection(props: { title: string; children?: Child }) {
   return (
-    <section class="mt-4">
-      <h2 class="m-0 mb-3 text-lg font-semibold text-ink">{props.title}</h2>
+    <section class="mt-5">
+      <h2 class="m-0 mb-2.5 text-base font-semibold text-ink">{props.title}</h2>
       {props.children}
     </section>
   );

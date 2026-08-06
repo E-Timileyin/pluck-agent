@@ -5,11 +5,21 @@
  * swap a single-file job.
  */
 import { drizzle, type DrizzleD1Database } from 'drizzle-orm/d1';
-import { and, asc, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNotNull, isNull, like, sql } from 'drizzle-orm';
 import * as schema from './schema';
-import { answers, attempts, promoters, questions, settings } from './schema';
+import {
+  admins,
+  answers,
+  attempts,
+  promoterPhotos,
+  promoters,
+  questions,
+  settings,
+} from './schema';
 import type {
+  Admin,
   Answer,
+  PromoterPhoto,
   Attempt,
   Promoter,
   Question,
@@ -29,6 +39,49 @@ export function getDb(binding: D1Database): Db {
 const now = () => new Date().toISOString();
 const id = () => crypto.randomUUID();
 
+/* -------------------------------------------------------------------- admins */
+
+/** Email is the admin's identity column, stored lower-cased so it matches. */
+export function getAdminByEmail(db: Db, email: string): Promise<Admin | undefined> {
+  return db.select().from(admins).where(eq(admins.email, email.trim().toLowerCase())).get();
+}
+
+export function getAdmin(db: Db, adminId: string): Promise<Admin | undefined> {
+  return db.select().from(admins).where(eq(admins.id, adminId)).get();
+}
+
+export function listAdmins(db: Db): Promise<Admin[]> {
+  return db.select().from(admins).orderBy(asc(admins.createdAt)).all();
+}
+
+export async function countAdmins(db: Db): Promise<number> {
+  const row = await db.select({ n: sql<number>`COUNT(*)` }).from(admins).get();
+  return Number(row?.n ?? 0);
+}
+
+/** Takes an already-hashed password — this layer never sees a plain one. */
+export async function createAdmin(
+  db: Db,
+  input: { name: string; email: string; passwordHash: string },
+): Promise<Admin> {
+  const rows = await db
+    .insert(admins)
+    .values({
+      id: id(),
+      name: input.name,
+      email: input.email.trim().toLowerCase(),
+      passwordHash: input.passwordHash,
+      createdAt: now(),
+    })
+    .returning();
+  return rows[0]!;
+}
+
+/** The audit trail, such as it is: who was here and when. */
+export async function touchAdminLogin(db: Db, adminId: string): Promise<void> {
+  await db.update(admins).set({ lastLoginAt: now() }).where(eq(admins.id, adminId));
+}
+
 /* ------------------------------------------------------------------ settings */
 
 const SETTINGS_DEFAULTS: Settings = {
@@ -37,6 +90,8 @@ const SETTINGS_DEFAULTS: Settings = {
   slidesUrl: null,
   minTutorialSeconds: 45,
   passMark: 80,
+  supportPhone: null,
+  supportEmail: null,
   updatedAt: '',
 };
 
@@ -100,6 +155,36 @@ export async function updateQuestion(
   await db.update(questions).set(input).where(eq(questions.id, questionId));
 }
 
+/**
+ * One insert for a whole imported file. Thirty separate round trips to D1 is
+ * thirty chances for the import to half-succeed.
+ */
+export async function createQuestions(
+  db: Db,
+  inputs: {
+    prompt: string;
+    options: string[];
+    correctIndex: number;
+    orderIndex: number;
+    isCritical: boolean;
+    isActive: boolean;
+  }[],
+): Promise<number> {
+  if (inputs.length === 0) return 0;
+  const stamp = now();
+  await db.insert(questions).values(inputs.map((input) => ({ id: id(), createdAt: stamp, ...input })));
+  return inputs.length;
+}
+
+/**
+ * Retire the current set before importing a new one. Deactivates, never
+ * deletes — a deleted question orphans every historical answer that referenced
+ * it, and the whole point of the snapshot is that past results stay readable.
+ */
+export async function deactivateAllQuestions(db: Db): Promise<void> {
+  await db.update(questions).set({ isActive: false }).where(eq(questions.isActive, true));
+}
+
 /** Deactivate, never delete — deleting orphans historical answers. */
 export async function toggleQuestion(db: Db, questionId: string): Promise<void> {
   await db
@@ -136,6 +221,126 @@ export async function upsertPromoter(
 
 export function getPromoter(db: Db, promoterId: string): Promise<Promoter | undefined> {
   return db.select().from(promoters).where(eq(promoters.id, promoterId)).get();
+}
+
+/**
+ * Self-service profile edits. Neither the phone (identity) nor the tier (what
+ * the training certifies) can be reached from here — only an admin moves
+ * somebody up a tier.
+ */
+export async function updatePromoter(
+  db: Db,
+  promoterId: string,
+  input: { name: string; email: string | null },
+): Promise<void> {
+  await db.update(promoters).set(input).where(eq(promoters.id, promoterId));
+}
+
+/* ------------------------------------------------------------------- photos */
+
+/**
+ * The bytes are never selected next to a promoter row — only this function and
+ * the route that streams the image ever touch them.
+ */
+export async function setPromoterPhoto(
+  db: Db,
+  promoterId: string,
+  input: { mime: string; data: ArrayBuffer },
+): Promise<void> {
+  await db
+    .insert(promoterPhotos)
+    .values({ promoterId, mime: input.mime, data: input.data, updatedAt: now() })
+    .onConflictDoUpdate({
+      target: promoterPhotos.promoterId,
+      set: { mime: input.mime, data: input.data, updatedAt: now() },
+    });
+}
+
+export function getPromoterPhoto(db: Db, promoterId: string): Promise<PromoterPhoto | undefined> {
+  return db
+    .select()
+    .from(promoterPhotos)
+    .where(eq(promoterPhotos.promoterId, promoterId))
+    .get();
+}
+
+export async function deletePromoterPhoto(db: Db, promoterId: string): Promise<void> {
+  await db.delete(promoterPhotos).where(eq(promoterPhotos.promoterId, promoterId));
+}
+
+/**
+ * Whether to render an `<img>` or initials — asked on every page load, so it
+ * reads the timestamp and leaves the blob where it is.
+ */
+export async function photoUpdatedAt(db: Db, promoterId: string): Promise<string | null> {
+  const row = await db
+    .select({ updatedAt: promoterPhotos.updatedAt })
+    .from(promoterPhotos)
+    .where(eq(promoterPhotos.promoterId, promoterId))
+    .get();
+  return row?.updatedAt ?? null;
+}
+
+/** Same question, asked for a page full of people at once. */
+export async function photoOwners(db: Db, promoterIds: string[]): Promise<Set<string>> {
+  if (promoterIds.length === 0) return new Set();
+  const rows = await db
+    .select({ promoterId: promoterPhotos.promoterId })
+    .from(promoterPhotos)
+    .where(inArray(promoterPhotos.promoterId, promoterIds))
+    .all();
+  return new Set(rows.map((r) => r.promoterId));
+}
+
+export type PromoterRow = {
+  promoter: Promoter;
+  attempts: number;
+  lastAttemptAt: string | null;
+  /** Best percentage across submitted attempts; null until one is submitted. */
+  bestPercent: number | null;
+  everPassed: boolean;
+  /** When their photo was last uploaded — the cache key, not the image. */
+  photoAt: string | null;
+};
+
+/**
+ * The admin's promoter directory: one row per person, not per attempt.
+ *
+ * `search` matches the name only — a phone number must never appear in a URL,
+ * and this runs from a GET form.
+ */
+export async function listPromoters(
+  db: Db,
+  opts: { search?: string; limit?: number } = {},
+): Promise<PromoterRow[]> {
+  const rows = await db
+    .select({
+      promoter: promoters,
+      attempts: sql<number>`COUNT(${attempts.id})`,
+      lastAttemptAt: sql<string | null>`MAX(${attempts.startedAt})`,
+      bestPercent: sql<
+        number | null
+      >`MAX(CASE WHEN ${attempts.submittedAt} IS NOT NULL AND ${attempts.total} > 0 THEN ROUND(CAST(${attempts.score} AS REAL) * 100 / ${attempts.total}) END)`,
+      everPassed: sql<number>`MAX(CASE WHEN ${attempts.passed} = 1 THEN 1 ELSE 0 END)`,
+      photoAt: promoterPhotos.updatedAt,
+    })
+    .from(promoters)
+    .leftJoin(attempts, eq(attempts.promoterId, promoters.id))
+    .leftJoin(promoterPhotos, eq(promoterPhotos.promoterId, promoters.id))
+    .where(opts.search ? like(promoters.name, `%${opts.search}%`) : undefined)
+    .groupBy(promoters.id)
+    .orderBy(desc(sql`MAX(${attempts.startedAt})`), desc(promoters.createdAt))
+    .limit(opts.limit ?? 200)
+    .all();
+
+  return rows.map((row) => ({
+    promoter: row.promoter,
+    attempts: Number(row.attempts ?? 0),
+    lastAttemptAt: row.lastAttemptAt,
+    bestPercent: row.bestPercent === null ? null : Number(row.bestPercent),
+    everPassed: Number(row.everPassed ?? 0) === 1,
+    photoAt: row.photoAt ?? null,
+  }));
 }
 
 /* ------------------------------------------------------------------ attempts */
@@ -277,12 +482,28 @@ export async function attestAndFinalize(
 
 export type AttemptRow = { attempt: Attempt; promoter: Promoter };
 
+/** The tabs above the attempts table. `all` is the default and adds no clause. */
+export type AttemptFilter = 'all' | 'passed' | 'failed' | 'in-progress';
+
+const FILTER_CLAUSE = {
+  all: undefined,
+  passed: and(isNotNull(attempts.submittedAt), eq(attempts.passed, true)),
+  failed: and(isNotNull(attempts.submittedAt), eq(attempts.passed, false)),
+  'in-progress': isNull(attempts.submittedAt),
+} as const;
+
 /** Unpaginated by design would degrade past ~500 rows, so it takes a window. */
-export function listAttempts(db: Db, limit = 100, offset = 0): Promise<AttemptRow[]> {
+export function listAttempts(
+  db: Db,
+  limit = 100,
+  offset = 0,
+  filter: AttemptFilter = 'all',
+): Promise<AttemptRow[]> {
   return db
     .select({ attempt: attempts, promoter: promoters })
     .from(attempts)
     .innerJoin(promoters, eq(promoters.id, attempts.promoterId))
+    .where(FILTER_CLAUSE[filter])
     .orderBy(desc(attempts.startedAt))
     .limit(limit)
     .offset(offset)

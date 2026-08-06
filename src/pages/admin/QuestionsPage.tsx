@@ -1,17 +1,26 @@
-import { Layout } from '../../components/common/Layout';
+import { AdminShell } from '../../components/admin/AdminShell';
 import { Alert } from '../../components/common/Alert';
 import { QuestionForm, type QuestionFormValues } from '../../components/admin/QuestionForm';
 import { QuestionList } from '../../components/admin/QuestionList';
-import type { Question } from '../../db/schema';
+import { QuestionImport } from '../../components/admin/QuestionImport';
+import { DashboardSection } from '../../components/dashboard/DashboardSection';
+import type { Admin, Question } from '../../db/schema';
 
 export function QuestionsPage(props: {
+  admin: Admin;
   questions: Question[];
   editing?: Question;
   values?: QuestionFormValues;
   errors?: Record<string, string>;
   notice?: string;
+  /** A rejected import: the pasted text, kept, and why it was refused. */
+  importJson?: string;
+  importErrors?: string[];
 }) {
   const { editing } = props;
+  const active = props.questions.filter((q) => q.isActive).length;
+  const critical = props.questions.filter((q) => q.isActive && q.isCritical).length;
+
   const defaults: QuestionFormValues = editing
     ? {
         prompt: editing.prompt,
@@ -24,34 +33,38 @@ export function QuestionsPage(props: {
     : { isActive: true, orderIndex: props.questions.length + 1 };
 
   return (
-    <Layout title="Questions" variant="admin">
-      <h1>Questions</h1>
-      <p class="lede">
-        Deactivate rather than delete — deleting orphans historical answers, the toggle leaves past
-        results intact.
-      </p>
+    <AdminShell
+      title="Questions"
+      active="questions"
+      admin={props.admin}
+      sub={`${active} active of ${props.questions.length} · ${critical} must be answered correctly to pass.`}
+    >
       {props.notice ? <Alert tone="info">{props.notice}</Alert> : null}
 
-      <h2>{editing ? 'Edit question' : 'Add a question'}</h2>
-      <QuestionForm
-        action={editing ? `/admin/questions/${editing.id}` : '/admin/questions'}
-        submitLabel={editing ? 'Save changes' : 'Add question'}
-        values={props.values ?? defaults}
-        errors={props.errors}
-      />
-      {editing ? (
-        <p>
-          <a class="btn btn-ghost btn-small" href="/admin/questions">
-            Cancel edit
-          </a>
-        </p>
-      ) : null}
+      <div id="question-form" class="scroll-mt-8">
+        <QuestionForm
+          title={editing ? 'Edit question' : 'Add a question'}
+          sub={
+            editing
+              ? 'Editing changes the live quiz only. Answers already given keep the snapshot they were asked with.'
+              : 'Deactivate rather than delete — deleting orphans historical answers, the toggle leaves past results intact.'
+          }
+          action={editing ? `/admin/questions/${editing.id}` : '/admin/questions'}
+          submitLabel={editing ? 'Save changes' : 'Add question'}
+          cancelHref={editing ? '/admin/questions' : undefined}
+          values={props.values ?? defaults}
+          errors={props.errors}
+        />
+      </div>
 
-      <h2>
-        All questions <span class="muted small">({props.questions.length})</span>
-      </h2>
-      <QuestionList questions={props.questions} />
-    </Layout>
+      <DashboardSection title="Bulk import">
+        <QuestionImport json={props.importJson} errors={props.importErrors} />
+      </DashboardSection>
+
+      <DashboardSection title={`All questions (${props.questions.length})`}>
+        <QuestionList questions={props.questions} />
+      </DashboardSection>
+    </AdminShell>
   );
 }
 

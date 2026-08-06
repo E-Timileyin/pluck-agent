@@ -28,6 +28,11 @@
 @source './**/*.tsx';
 
 @theme {
+  /* Same stack as --font in App.css, so a Tailwind `font-sans` and an unstyled
+     paragraph cannot disagree. */
+  --font-sans:
+    'Noto Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
   --color-brand: #09b34f; /* primary action, active state, progress fill */
   --color-brand-deep: #045023; /* dark card background, high-emphasis brand text */
   --color-brand-mint: #dbffe5; /* active nav pill, tile backgrounds, badges */
@@ -36,6 +41,7 @@
   --color-muted: #6b7280; /* secondary text, inactive nav labels */
   --color-line: #e8ede9; /* all borders and dividers */
   --color-page: #fbfdfb; /* page background */
+  --color-surface: #f4f6f5; /* filled form controls on the sign-in screens */
   --color-miss: #ff2e00; /* reserved — missed answers only, never this screen */
 
   /* Upcoming step circles, and the "Completed" pill's text. */
