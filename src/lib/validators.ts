@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { normalizePhone } from './phone';
+import { IMPORT_TIER } from './questionFormat';
 
 const trimmed = z.string().trim();
 
@@ -32,8 +33,54 @@ export const attestSchema = z.object({
   confirm: z.literal('on', { message: 'Tick the box to confirm you have read the rules.' }),
 });
 
-export const loginSchema = z.object({
-  passcode: z.string().min(1, 'Enter the passcode.'),
+/**
+ * A sales agent editing their own details.
+ *
+ * Neither the phone number nor the tier is here. The phone is the identity
+ * column every attempt hangs off; the tier is what the training *certifies*, so
+ * self-service promotion would make the certificate meaningless. Both are
+ * absent from the form and absent from this schema, which is what stops a
+ * hand-rolled POST from setting them.
+ */
+export const profileSchema = z.object({
+  name: trimmed.min(2, 'Enter your full name.').max(80, 'Name is too long.'),
+  email: z
+    .union([z.literal(''), trimmed.email('That email address is not valid.')])
+    .optional()
+    .transform((value) => (value ? value : null)),
+});
+
+/* --------------------------------------------------------------- admin auth */
+
+const email = trimmed.email('Enter a valid email address.').transform((v) => v.toLowerCase());
+
+/** Length is the only rule worth enforcing; a composition rule buys nothing. */
+const password = z.string().min(10, 'Use at least 10 characters.').max(200, 'That is too long.');
+
+export const adminLoginSchema = z.object({
+  email,
+  password: z.string().min(1, 'Enter your password.'),
+});
+
+/** First run only — guarded by the setup key and by there being no admins yet. */
+export const adminSetupSchema = z
+  .object({
+    name: trimmed.min(2, 'Enter your name.').max(80, 'Name is too long.'),
+    email,
+    password,
+    confirm: z.string(),
+    setupKey: z.string().min(1, 'Enter the setup key.'),
+  })
+  .refine((v) => v.password === v.confirm, {
+    message: 'Those two passwords do not match.',
+    path: ['confirm'],
+  });
+
+/** Adding a colleague from Settings → Team. */
+export const adminInviteSchema = z.object({
+  name: trimmed.min(2, 'Enter their name.').max(80, 'Name is too long.'),
+  email,
+  password,
 });
 
 const optionFields = z.object({
@@ -73,11 +120,74 @@ export const questionSchema = z
     path: ['correctIndex'],
   });
 
+/* ------------------------------------------------------- question import */
+
+/**
+ * The uploaded file, validated shape-first.
+ *
+ * `answer` is the option's *text*, not its index: a model that has just written
+ * four options can copy the right one back reliably, whereas asking it for a
+ * zero-based index is how you get a quiz where every answer is off by one and
+ * nobody notices until an agent fails.
+ */
+const importedQuestion = z
+  .object({
+    question: trimmed.min(5, 'Question is too short.').max(500, 'Question is too long.'),
+    options: z
+      .array(trimmed.min(1, 'An option is blank.').max(200, 'An option is too long.'))
+      .min(2, 'Give at least two options.')
+      .max(6, 'Six options at most.'),
+    answer: trimmed.min(1, 'Give the correct answer.'),
+    critical: z.boolean().optional().default(false),
+  })
+  .refine(
+    (q) => q.options.some((o) => o.toLowerCase() === q.answer.toLowerCase()),
+    { message: 'The answer must be one of the options, copied exactly.', path: ['answer'] },
+  );
+
+export const questionImportSchema = z.object({
+  // A refine rather than z.literal: literal ignores `message` in zod 3 and
+  // reports "Invalid literal value, expected \"SP3\"", which tells an admin
+  // nothing about why. Case and stray spaces are forgiven — "sp3 " is not a
+  // different course.
+  tier: trimmed.refine((value) => value.toUpperCase() === IMPORT_TIER, {
+    message: `Only ${IMPORT_TIER} questions can be imported — it is the only course that exists.`,
+  }),
+  questions: z
+    .array(importedQuestion)
+    .min(1, 'The file has no questions in it.')
+    .max(100, 'A hundred questions at most in one file.'),
+});
+
+export type ImportedQuestion = z.infer<typeof importedQuestion>;
+
+/**
+ * Zod's issue paths are `questions.3.answer`; an admin needs "Question 4".
+ * Reported one per line rather than as a single blob, because a thirty-question
+ * file usually has the same mistake three times.
+ */
+export function importErrors(error: z.ZodError): string[] {
+  return error.issues.slice(0, 8).map((issue) => {
+    const [head, index, field] = issue.path;
+    if (head === 'questions' && typeof index === 'number') {
+      return `Question ${index + 1}${field ? ` (${String(field)})` : ''}: ${issue.message}`;
+    }
+    return issue.message;
+  });
+}
+
 export const settingsSchema = z.object({
   videoUrl: trimmed.optional().default(''),
   slidesUrl: trimmed.optional().default(''),
   passMark: z.coerce.number().int().min(1).max(100),
   minTutorialSeconds: z.coerce.number().int().min(0).max(3600),
+  // Normalized in the handler, alongside the Drive links, so both kinds of
+  // "paste something and we tidy it" live in one place.
+  supportPhone: trimmed.optional().default(''),
+  supportEmail: z
+    .union([z.literal(''), trimmed.email('That email address is not valid.')])
+    .optional()
+    .default(''),
 });
 
 export type StartInput = z.infer<typeof startSchema>;

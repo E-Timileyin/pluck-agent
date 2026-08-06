@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import type { AgentEnv } from '../types';
-import { getDb } from '../db/queries';
+import { getDb, listAttemptsForPromoter } from '../db/queries';
 import { attemptGuard } from '../middleware/attempt';
 import { stepFor } from '../lib/flow';
 import { modulesFor, resumeFor } from '../lib/progress';
@@ -29,6 +29,7 @@ app.get('/', async (c) => {
       modules={modulesFor(attempt, shell.settings, shell.progress)}
       resume={resumeFor(shell.progress.current)}
       resumeHref={await stepFor(db, attempt)}
+      attempts={await listAttemptsForPromoter(db, shell.promoter.id)}
     />,
   );
 });

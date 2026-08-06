@@ -2,10 +2,8 @@ import './ConductRules.css';
 
 /** The four rules from slides 10 and 14 that carry real consequence. */
 export const CONDUCT_RULES = [
-  'Customer payments go only into company-approved accounts, never a promoter’s personal account.',
-  'Asset recovery follows company-approved procedure only — never force, threats or intimidation.',
-  'Customer data is protected; breaches carry penalties.',
-  'Products and repayment terms are explained honestly.',
+  'Customer payments go only into company-approved accounts, never a sales agent’s personal account.',
+  'Asset recovery follows company-approved procedure only never force, threats or intimidation.',
 ];
 
 export function ConductRules() {
