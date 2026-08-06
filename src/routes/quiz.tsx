@@ -9,6 +9,7 @@ import {
   getQuestion,
   getSettings,
   listAnswers,
+  listAttemptsForPromoter,
   nextUnansweredQuestion,
   recordAnswer,
 } from '../db/queries';
@@ -16,10 +17,12 @@ import { answerSchema, attestSchema } from '../lib/validators';
 import { getAttemptId } from '../lib/session';
 import { attemptGuard } from '../middleware/attempt';
 import { gatePassed, stepFor } from '../lib/flow';
+import { shellFor } from '../lib/shell';
 import { computeResult } from '../lib/scoring';
 import { QuizPage, QuizEmptyPage } from '../pages/quiz/QuizPage';
 import { AttestPage } from '../pages/quiz/AttestPage';
 import { ResultsPage } from '../pages/quiz/ResultsPage';
+import { ResultsListPage } from '../pages/results/ResultsListPage';
 
 // Mounted at '/', so the attempt guard is attached per route rather than with a
 // wildcard `use` — a wildcard here also runs for /admin and /results.
@@ -38,10 +41,15 @@ app.get('/quiz', attemptGuard, async (c) => {
   // The gate covers direct navigation here too, not just the Continue button.
   if (answered === 0 && !(await gatePassed(db, attempt))) return c.redirect('/learn?early=1');
 
-  if (total === 0) return c.html(<QuizEmptyPage />);
+  const shell = await shellFor(db, attempt);
+  if (!shell) return c.redirect('/');
+
+  if (total === 0) return c.html(<QuizEmptyPage shell={shell} />);
   if (!question) return c.redirect('/attest');
 
-  return c.html(<QuizPage question={question} position={answered + 1} total={total} />);
+  return c.html(
+    <QuizPage shell={shell} question={question} position={answered + 1} total={total} />,
+  );
 });
 
 app.post(
@@ -77,11 +85,15 @@ app.get('/attest', attemptGuard, async (c) => {
 
   const db = getDb(c.env.DB);
   const { question, total } = await nextUnansweredQuestion(db, attempt.id);
-  if (total === 0) return c.html(<QuizEmptyPage />);
+  const shell = await shellFor(db, attempt);
+  if (!shell) return c.redirect('/');
+
+  if (total === 0) return c.html(<QuizEmptyPage shell={shell} />);
   if (question) return c.redirect('/quiz');
 
   return c.html(
     <AttestPage
+      shell={shell}
       error={
         c.req.query('unchecked') ? 'Tick the box to confirm you have read the rules.' : undefined
       }
@@ -113,16 +125,43 @@ app.post(
 
 /* ------------------------------------------------------------------ results */
 
-// Outside the guard on purpose: a missing or mismatched cookie must 404 rather
-// than redirect, otherwise result URLs are enumerable.
+/** Every attempt this promoter has made — the nav's "My Results" lands here. */
+app.get('/results', attemptGuard, async (c) => {
+  const attempt = c.get('attempt');
+  const db = getDb(c.env.DB);
+
+  const shell = await shellFor(db, attempt);
+  if (!shell) return c.redirect('/');
+
+  return c.html(
+    <ResultsListPage
+      shell={shell}
+      attempts={await listAttemptsForPromoter(db, shell.promoter.id)}
+      resumeHref={await stepFor(db, attempt)}
+    />,
+  );
+});
+
+// Outside the guard on purpose: an unknown cookie must 404 rather than
+// redirect, otherwise result URLs are enumerable.
 app.get('/results/:id', async (c) => {
   const attemptId = await getAttemptId(c);
-  if (!attemptId || attemptId !== c.req.param('id')) return c.notFound();
+  if (!attemptId) return c.notFound();
 
   const db = getDb(c.env.DB);
-  const attempt = await getAttempt(db, attemptId);
+  const attempt = await getAttempt(db, c.req.param('id'));
   if (!attempt) return c.notFound();
-  if (!attempt.submittedAt) return c.redirect(await stepFor(db, attempt));
+
+  // Your own history is yours to read, so the check is on the promoter behind
+  // the cookie rather than on the exact attempt — a stranger's id still 404s.
+  const current = await getAttempt(db, attemptId);
+  if (!current || current.promoterId !== attempt.promoterId) return c.notFound();
+
+  // Nothing to show yet: the attempt in hand goes to wherever it belongs, an
+  // older unfinished one to the list it came from.
+  if (!attempt.submittedAt) {
+    return c.redirect(attempt.id === current.id ? await stepFor(db, attempt) : '/results');
+  }
 
   const [row, answers, settings] = await Promise.all([
     getAttemptWithPromoter(db, attempt.id),
@@ -131,10 +170,13 @@ app.get('/results/:id', async (c) => {
   ]);
   if (!row) return c.notFound();
 
+  const shell = await shellFor(db, attempt);
+  if (!shell) return c.notFound();
+
   return c.html(
     <ResultsPage
+      shell={shell}
       attempt={row.attempt}
-      promoter={row.promoter}
       answers={answers}
       result={computeResult(answers, settings.passMark)}
       passMark={settings.passMark}

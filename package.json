@@ -16,17 +16,26 @@
     "db:seed:local": "wrangler d1 execute pluck-training --local --file=./seed.sql",
     "db:seed:remote": "wrangler d1 execute pluck-training --remote --file=./seed.sql",
     "db:demo:local": "wrangler d1 execute pluck-training --local --file=./demo.sql",
-    "setup:local": "npm run db:migrate:local && npm run db:seed:local"
+    "setup": "bash scripts/setup.sh",
+    "setup:docker": "bash scripts/setup.sh --docker",
+    "setup:local": "npm run db:migrate:local && npm run db:seed:local",
+    "docker:up": "docker compose up",
+    "docker:down": "docker compose down",
+    "docker:sh": "docker compose run --rm --no-deps app bash",
+    "db:mock:local": "wrangler d1 execute pluck-training --local --file=./mock.sql"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.4.2",
     "drizzle-orm": "^0.38.3",
     "hono": "^4.6.16",
+    "react-icons": "^5.7.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250109.0",
+    "@tailwindcss/cli": "^4.3.3",
     "drizzle-kit": "^0.30.1",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5.7.3",
     "vitest": "^2.1.8",
     "wrangler": "^3.101.0"

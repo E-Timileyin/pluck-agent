@@ -1,0 +1,40 @@
+# docker compose up  →  http://localhost:8787
+#
+# Run scripts/setup.sh --docker first: it writes .dev.vars, installs, builds the
+# stylesheet and seeds the database.
+services:
+  app:
+    build: .
+    # PORT=8788 docker compose up  — when something already has 8787, which is
+    # usually your own `npm run dev`. Docker's own error for that is a wall of
+    # daemon text about endpoint binding.
+    ports:
+      - '${PORT:-8787}:8787'
+
+    volumes:
+      # The source is bind-mounted so an edit reloads without a rebuild — and so
+      # the D1 database under .wrangler/state is the *same file* the host's
+      # `npm run db:*` scripts touch. One database, either way in.
+      - .:/app
+      # Anonymous volume: keeps the image's node_modules (built for this
+      # container's platform) rather than letting the host's shadow them.
+      - /app/node_modules
+
+    # ADMIN_PASSCODE and SESSION_SECRET. wrangler reads this file itself, but
+    # naming it here makes compose fail loudly when setup has not been run.
+    env_file:
+      - .dev.vars
+
+    # On rootful Docker the container writes into the bind mount as root, so
+    # .wrangler/ can end up owned by root and the host's `npm run dev` then
+    # cannot open the database. One-line fix after switching back:
+    #   sudo chown -R "$USER" .wrangler
+    # Rootless Docker and Podman map to your own uid and need nothing.
+
+    # wrangler watches the filesystem; without this a bind-mounted edit on some
+    # hosts never fires an inotify event.
+    environment:
+      CHOKIDAR_USEPOLLING: 'true'
+
+    stdin_open: true
+    tty: true

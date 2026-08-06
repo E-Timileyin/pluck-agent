@@ -4,7 +4,13 @@ compatibility_date = "2025-01-01"
 
 assets = { directory = "./public" }
 
-# Components import their own stylesheet (see CLAUDE.md). Those imports are for
+# react-icons is built against React; this app renders with hono/jsx. The shim
+# re-exports hono/jsx with the one API react-icons needs that it lacks
+# (Context.Consumer), so the icons server-render like any other component.
+[alias]
+react = "./src/lib/react-shim.ts"
+
+# Components import their own stylesheet (see docs/architecture.md). Those are for
 # co-location only — the browser gets the concatenated public/styles.css — so
 # treat .css as text rather than letting the bundler fail on it.
 [[rules]]

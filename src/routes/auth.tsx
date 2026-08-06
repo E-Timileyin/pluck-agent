@@ -4,7 +4,6 @@ import type { AppEnv } from '../types';
 import { createAttempt, getAttempt, getDb, upsertPromoter } from '../db/queries';
 import { fieldErrors, startSchema } from '../lib/validators';
 import { clearAttemptCookie, getAttemptId, setAttemptCookie } from '../lib/session';
-import { stepFor } from '../lib/flow';
 import { StartPage } from '../pages/auth/StartPage';
 
 /**
@@ -18,8 +17,9 @@ app.get('/', async (c) => {
   if (attemptId) {
     const db = getDb(c.env.DB);
     const attempt = await getAttempt(db, attemptId);
-    // A live cookie means skip this screen and resume where they left off.
-    if (attempt) return c.redirect(await stepFor(db, attempt));
+    // A live cookie means skip this screen. The dashboard, not the step itself:
+    // it offers the same resume link and shows what is left around it.
+    if (attempt) return c.redirect('/dashboard');
     clearAttemptCookie(c);
   }
   return c.html(<StartPage />);
@@ -48,7 +48,7 @@ app.post(
     const attempt = await createAttempt(db, promoter.id);
     await setAttemptCookie(c, attempt.id);
 
-    return c.redirect('/learn');
+    return c.redirect('/dashboard');
   },
 );
 

@@ -1,9 +1,8 @@
-import { FieldError } from '../common/FieldError';
-import './StartForm.css';
+import { AUTH_INPUT } from './AuthLayout';
+import { AuthField } from './AuthField';
+import { AuthSubmit } from './AuthSubmit';
 
 export type StartValues = { name?: string; phone?: string; tier?: string; email?: string };
-
-const TIERS = ['SP3', 'SP2', 'SP1'] as const;
 
 /** Phone is the identifier, not email — see flow.md §1. */
 export function StartForm(props: { values?: StartValues; errors?: Record<string, string> }) {
@@ -11,51 +10,66 @@ export function StartForm(props: { values?: StartValues; errors?: Record<string,
   const errors = props.errors ?? {};
 
   return (
-    <form method="post" action="/start" class="card stack startform">
-      <label class="field">
-        <span class="label">Full name</span>
-        <input name="name" type="text" autocomplete="name" maxlength={80} required value={values.name ?? ''} />
-        <FieldError message={errors.name} />
-      </label>
-
-      <label class="field">
-        <span class="label">Phone number</span>
+    <form method="post" action="/start" class="grid gap-4">
+      <AuthField label="Full name" error={errors.name}>
         <input
-          name="phone"
-          type="tel"
-          inputmode="tel"
-          autocomplete="tel"
-          placeholder="08012345678"
+          class={AUTH_INPUT}
+          name="name"
+          type="text"
+          autocomplete="name"
+          maxlength={80}
+          placeholder="Emeka Okafor"
           required
-          value={values.phone ?? ''}
+          value={values.name ?? ''}
         />
-        <FieldError message={errors.phone} />
-      </label>
+      </AuthField>
 
-      <label class="field">
-        <span class="label">
-          Email <span class="muted"></span>
+      <AuthField label="Phone number" error={errors.phone}>
+        {/* The +234 is a label, not a prefix that gets concatenated —
+            normalizePhone() takes 080…, 80…, 234… or +234… all the same. */}
+        <span class="flex items-stretch overflow-hidden rounded-xl border border-line bg-surface focus-within:border-brand focus-within:bg-white">
+          <span class="flex shrink-0 items-center gap-2 border-r border-line px-3.5 text-[15px] font-semibold text-ink">
+            <svg class="h-4 w-6 rounded-sm border border-line" viewBox="0 0 9 6" aria-hidden="true">
+              <rect width="3" height="6" fill="#008751" />
+              <rect x="3" width="3" height="6" fill="#ffffff" />
+              <rect x="6" width="3" height="6" fill="#008751" />
+            </svg>
+            +234
+          </span>
+          <input
+            class="h-13 min-w-0 flex-1 border-0 bg-transparent px-3.5 text-[15px] text-ink outline-none placeholder:text-muted"
+            name="phone"
+            type="tel"
+            inputmode="tel"
+            autocomplete="tel"
+            placeholder="08012345678"
+            required
+            value={values.phone ?? ''}
+          />
         </span>
-        <input name="email" type="email" autocomplete="email" value={values.email ?? ''} />
-        <FieldError message={errors.email} />
-      </label>
+      </AuthField>
 
-      <fieldset class="field">
-        <legend class="label">Your tier</legend>
-        <div class="tiers">
-          {TIERS.map((tier) => (
-            <label class="tier">
-              <input type="radio" name="tier" value={tier} checked={(values.tier ?? 'SP3') === tier} />
-              <span>{tier}</span>
-            </label>
-          ))}
-        </div>
-        <FieldError message={errors.tier} />
-      </fieldset>
+      <AuthField label="Email" optional error={errors.email}>
+        <input
+          class={AUTH_INPUT}
+          name="email"
+          type="email"
+          autocomplete="email"
+          placeholder="you@example.com"
+          value={values.email ?? ''}
+        />
+      </AuthField>
 
-      <button class="btn btn-primary" type="submit">
-        Start training
-      </button>
+      {/* Every new sales agent starts on SP3 — there is no other course yet, so
+          this is a fixed fact rather than a question. Still posted, so the
+          server keeps validating it instead of trusting a default. */}
+      <input type="hidden" name="tier" value="SP3" />
+      <p class="m-0 rounded-xl bg-brand-mint px-4 py-3 text-[13px]/[1.5] text-brand-ink">
+        You will be enrolled on the <strong>SP3</strong> training. Your supervisor moves you up a
+        tier once you have passed it.
+      </p>
+
+      <AuthSubmit>Start training</AuthSubmit>
     </form>
   );
 }

@@ -5,8 +5,12 @@ import { logger } from 'hono/logger';
 import { HTTPException } from 'hono/http-exception';
 import type { AppEnv } from './types';
 import auth from './routes/auth';
+import dashboard from './routes/dashboard';
 import learn from './routes/learn';
 import quiz from './routes/quiz';
+import resources from './routes/resources';
+import profile from './routes/profile';
+import support from './routes/support';
 import admin from './routes/admin';
 import { Layout } from './components/common/Layout';
 import { Alert } from './components/common/Alert';
@@ -28,11 +32,15 @@ app.use('*', (c, next) =>
 // Never log phone numbers — they are never in a path, and nothing else is logged.
 app.use('*', logger());
 
-// Entry, training and quiz are separate routers: only the last two need an
-// attempt to already exist, and only they carry the progress rail.
+// One router per navigation area. Everything below /dashboard needs an attempt
+// to already exist; only auth does not.
 app.route('/', auth);
+app.route('/dashboard', dashboard);
 app.route('/learn', learn);
-app.route('/', quiz);
+app.route('/', quiz); // /quiz, /attest, /results
+app.route('/resources', resources);
+app.route('/profile', profile);
+app.route('/support', support);
 app.route('/admin', admin);
 
 app.notFound((c) =>

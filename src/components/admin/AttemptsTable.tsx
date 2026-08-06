@@ -1,61 +1,54 @@
-import { Alert } from '../common/Alert';
+import { FiInbox } from 'react-icons/fi';
+import { TableShell } from '../common/TableShell';
+import { StatusPill } from '../common/StatusPill';
+import { EmptyState } from '../common/EmptyState';
 import type { AttemptRow } from '../../db/queries';
 import { formatPhone } from '../../lib/phone';
 import { formatDate } from '../../lib/format';
-import './AttemptsTable.css';
 
-export function AttemptsTable(props: { rows: AttemptRow[] }) {
+const COLUMNS = ['Name', 'Phone', 'Tier', 'Started', 'Format', 'Score', 'Result', 'Attested'];
+
+export function AttemptsTable(props: { rows: AttemptRow[]; emptyCopy?: string }) {
   if (props.rows.length === 0) {
-    return <Alert tone="info">No attempts yet. Share the training link with a promoter to start.</Alert>;
+    return (
+      <EmptyState
+        Icon={FiInbox}
+        title="No attempts here"
+        copy={props.emptyCopy ?? 'Share the training link with a sales agent and their attempt lands here.'}
+      />
+    );
   }
 
   return (
-    <div class="tablewrap">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Tier</th>
-            <th>Started</th>
-            <th>Format</th>
-            <th>Score</th>
-            <th>Result</th>
-            <th>Attested</th>
-          </tr>
-        </thead>
-        <tbody>
-          {props.rows.map(({ attempt, promoter }) => (
-            <tr>
-              <td>
-                <a href={`/admin/promoters/${promoter.id}`}>{promoter.name}</a>
-              </td>
-              <td>{formatPhone(promoter.phone)}</td>
-              <td>{promoter.tier}</td>
-              <td>{formatDate(attempt.startedAt)}</td>
-              <td>{attempt.tutorialMode ?? '—'}</td>
-              <td>
-                {attempt.submittedAt ? (
-                  `${attempt.score}/${attempt.total}`
-                ) : (
-                  <span class="muted">in progress</span>
-                )}
-              </td>
-              <td>
-                {attempt.submittedAt ? (
-                  <span class={attempt.passed ? 'pill pill-pass' : 'pill pill-fail'}>
-                    {attempt.passed ? 'Pass' : 'Fail'}
-                  </span>
-                ) : (
-                  '—'
-                )}
-              </td>
-              <td>{attempt.attestedAt ? formatDate(attempt.attestedAt) : '—'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <TableShell columns={COLUMNS}>
+      {props.rows.map(({ attempt, promoter }) => (
+        <tr class="hover:bg-brand-tint">
+          <td>
+            {/* The id is in the URL, never the phone number. */}
+            <a class="font-semibold text-ink no-underline hover:underline" href={`/admin/promoters/${promoter.id}`}>
+              {promoter.name}
+            </a>
+          </td>
+          <td class="text-muted">{formatPhone(promoter.phone)}</td>
+          <td class="text-muted">{promoter.tier}</td>
+          <td class="text-muted">{formatDate(attempt.startedAt)}</td>
+          <td class="text-muted">{attempt.tutorialMode ?? '—'}</td>
+          <td class={attempt.submittedAt ? 'font-semibold text-ink' : 'text-muted'}>
+            {attempt.submittedAt ? `${attempt.score}/${attempt.total}` : 'in progress'}
+          </td>
+          <td>
+            {attempt.submittedAt ? (
+              <StatusPill tone={attempt.passed ? 'pass' : 'miss'}>
+                {attempt.passed ? 'Pass' : 'Fail'}
+              </StatusPill>
+            ) : (
+              <StatusPill>In progress</StatusPill>
+            )}
+          </td>
+          <td class="text-muted">{attempt.attestedAt ? formatDate(attempt.attestedAt) : '—'}</td>
+        </tr>
+      ))}
+    </TableShell>
   );
 }
 

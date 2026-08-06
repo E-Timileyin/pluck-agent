@@ -1,10 +1,12 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import type { AgentEnv } from '../types';
-import { getDb, getSettings, setTutorialMode } from '../db/queries';
+import { getDb, getSettings, listQuestions, setTutorialMode } from '../db/queries';
 import { modeSchema } from '../lib/validators';
 import { attemptGuard } from '../middleware/attempt';
 import { elapsedSeconds, gatePassed } from '../lib/flow';
+import { modulesFor } from '../lib/progress';
+import { shellFor } from '../lib/shell';
 import { LearnPage } from '../pages/learn/LearnPage';
 
 /** The training itself: choose a format, watch or read it, pass the time gate. */
@@ -16,16 +18,28 @@ app.get('/', async (c) => {
   const attempt = c.get('attempt');
   if (attempt.submittedAt) return c.redirect(`/results/${attempt.id}`);
 
-  const settings = await getSettings(getDb(c.env.DB));
+  const db = getDb(c.env.DB);
+  const settings = await getSettings(db);
   const remaining = attempt.tutorialStartedAt
     ? Math.max(0, settings.minTutorialSeconds - elapsedSeconds(attempt.tutorialStartedAt))
     : settings.minTutorialSeconds;
 
+  const shell = await shellFor(db, attempt);
+  if (!shell) return c.redirect('/');
+
+  // The rail names what the quiz will ask of them, so the counts come from the
+  // live active set rather than from copy that goes stale.
+  const active = await listQuestions(db, { activeOnly: true });
+
   return c.html(
     <LearnPage
-      settings={settings}
+      shell={shell}
       mode={attempt.tutorialMode}
+      modules={modulesFor(attempt, settings, shell.progress)}
+      elapsedSeconds={settings.minTutorialSeconds - remaining}
       remainingSeconds={remaining}
+      questionCount={active.length}
+      criticalCount={active.filter((q) => q.isCritical).length}
       error={c.req.query('early') ? 'Take a little longer with the material first.' : undefined}
     />,
   );

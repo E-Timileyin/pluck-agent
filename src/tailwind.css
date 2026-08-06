@@ -1,0 +1,50 @@
+/*
+ * Tailwind input for the promoter shell.
+ *
+ * Preflight is deliberately NOT imported. The rest of the app is styled by
+ * hand-written CSS (src/App.css plus co-located component sheets) that brings
+ * its own reset; dropping Tailwind's on top would restyle every other screen.
+ * Importing theme + utilities alone gives us the utility classes and nothing
+ * else.
+ *
+ * The generated output is appended to public/styles.css by
+ * scripts/build-css.mjs, so utilities land after the hand-written rules and win
+ * on equal specificity.
+ */
+
+@layer theme;
+
+@import 'tailwindcss/theme.css' layer(theme);
+
+/* Imported WITHOUT a layer on purpose. src/App.css styles bare h1/h2/p
+   selectors and is not itself layered — and an unlayered rule beats a layered
+   one regardless of specificity, so utilities inside @layer would lose to
+   `h2 { color: var(--deep) }`. Unlayered and last, they win normally. */
+@import 'tailwindcss/utilities.css';
+
+/* The dashboard shell wraps every promoter screen, so its utilities can appear
+   in any component or page. Scanning all of src costs nothing — Tailwind only
+   emits the classes it actually finds. */
+@source './**/*.tsx';
+
+@theme {
+  /* Same stack as --font in App.css, so a Tailwind `font-sans` and an unstyled
+     paragraph cannot disagree. */
+  --font-sans:
+    'Noto Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  --color-brand: #09b34f; /* primary action, active state, progress fill */
+  --color-brand-deep: #045023; /* dark card background, high-emphasis brand text */
+  --color-brand-mint: #dbffe5; /* active nav pill, tile backgrounds, badges */
+  --color-brand-tint: #f1faf3; /* subtle card wash */
+  --color-ink: #111827; /* ALL headings and primary text */
+  --color-muted: #6b7280; /* secondary text, inactive nav labels */
+  --color-line: #e8ede9; /* all borders and dividers */
+  --color-page: #fbfdfb; /* page background */
+  --color-surface: #f4f6f5; /* filled form controls on the sign-in screens */
+  --color-miss: #ff2e00; /* reserved — missed answers only, never this screen */
+
+  /* Upcoming step circles, and the "Completed" pill's text. */
+  --color-step-idle: #f3f4f6;
+  --color-brand-ink: #067a38;
+}

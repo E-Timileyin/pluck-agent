@@ -5,16 +5,56 @@ dashboard. Server-rendered Hono on Cloudflare Workers, D1 for storage.
 
 Agents are field promoters on personal Android phones and mobile data, often on
 3G — every decision here follows from that. See `docs/` for the reasoning
-(`tech-stack.md`, `architecture.md`, `flow.md`, `development.md`) and `CLAUDE.md`
-for the conventions this codebase follows.
+(`tech-stack.md`, `architecture.md`, `flow.md`, `development.md`) for the
+reasoning and the conventions this codebase follows.
 
 ```
-/                     name + phone + tier
+/                     name + phone; every new sales agent is enrolled on SP3
+/dashboard            progress, goal, scores, what to do next
 /learn                slides or video, server-enforced time gate
 /quiz                 one question per screen, scored on the server
 /attest               the compliance checkbox
+/results              every attempt this agent has made
 /results/:attemptId   score, pass/fail, per-question review
+/resources            the material, the rules, how the quiz works
+/profile              name, email, photo — phone and tier are locked
+/support              contact desk and FAQ, both read from settings
 ```
+
+## Admin access
+
+**The console lives at `/admin`.** Nothing in the sales-agent app links to it —
+an agent never needs it, and a sign-in form they cannot use is a sign-in form
+they will try. The URL is the only way in, and it is written down here rather
+than on the screen.
+
+```
+/admin                overview: attempts, pass rate, most-missed question
+/admin/attempts       the full list, filterable
+/admin/promoters      the sales-agent directory, searchable by name
+/admin/questions      author questions, or import JSON from an AI
+/admin/settings       Drive links, pass mark, gate, support desk, team
+```
+
+Sign in with a named account — email and password, hashed with PBKDF2 (see
+`src/lib/password.ts`). The seed ships one for demos:
+
+```
+admin@pluck.ng  /  pluck-demo-admin
+```
+
+That is a **known credential committed to this repo**. Before real agents use a
+deployment, add a named account in Settings → Team and delete it:
+
+```bash
+npx wrangler d1 execute pluck-training --remote \
+  --command "DELETE FROM admins WHERE email = 'admin@pluck.ng'"
+```
+
+With no admins left, `/admin/login` redirects to `/admin/setup`, which creates
+the first account. It asks for a **setup key** — that is `ADMIN_PASSCODE`, the
+old shared secret, demoted to a one-time bootstrap so that whoever loads a fresh
+deployment first cannot simply claim the console.
 
 ## Setup
 
@@ -72,7 +112,8 @@ something, usually a missing secret or an unapplied remote migration.
 
 No agent login: a promoter can enter a colleague's name. The fix is an OTP to
 that phone number — about a day of work plus a Termii account. The gate proves
-elapsed time, not attention; the quiz is what proves comprehension. The admin
-passcode is one shared secret with no audit trail, and it is not authentication.
+elapsed time, not attention; the quiz is what proves comprehension. Admin
+accounts are named and password-hashed, but there is no password reset and no
+audit trail beyond `admins.last_login_at`.
 The Drive files must be "anyone with the link", and the deck contains commission
 rates and internal targets — say that before the demo, not after.

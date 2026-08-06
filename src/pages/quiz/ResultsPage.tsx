@@ -1,23 +1,25 @@
-import { Layout } from '../../components/common/Layout';
+import { PromoterShell } from '../../components/common/PromoterShell';
 import { Alert } from '../../components/common/Alert';
 import { ScoreVerdict } from '../../components/quiz/ScoreVerdict';
 import { AnswerReview } from '../../components/common/AnswerReview';
-import type { Answer, Attempt, Promoter } from '../../db/schema';
+import type { Answer, Attempt } from '../../db/schema';
 import type { Result } from '../../lib/scoring';
+import type { Shell } from '../../lib/shell';
 import { formatPhone } from '../../lib/phone';
 import { formatDate } from '../../lib/format';
 
 export function ResultsPage(props: {
+  shell: Shell;
   attempt: Attempt;
-  promoter: Promoter;
   answers: Answer[];
   result: Result;
   passMark: number;
 }) {
-  const { attempt, promoter, result } = props;
+  const { attempt, result } = props;
+  const { promoter } = props.shell;
 
   return (
-    <Layout title="Your result" step="result">
+    <PromoterShell title="Your result" shell={props.shell} active="results" showRail>
       <ScoreVerdict result={result} passMark={props.passMark} />
 
       {result.missedCritical.length > 0 ? (
@@ -41,7 +43,7 @@ export function ResultsPage(props: {
           Take it again
         </button>
       </form>
-    </Layout>
+    </PromoterShell>
   );
 }
 
