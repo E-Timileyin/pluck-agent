@@ -26,7 +26,10 @@
   --shell: 34rem;
   --transition: 150ms ease;
 
-  --font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* Noto Sans is loaded in the document head; the rest is the fallback stack
+     for a phone that never gets it. */
+  --font: 'Noto Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
 }
 
 *,
@@ -42,15 +45,16 @@ html {
 body {
   margin: 0;
   font-family: var(--font);
+  /* Noto Sans is variable on both axes — let the browser pick the optical size
+     and pin the width, or headings render at whatever the last axis was. */
+  font-optical-sizing: auto;
+  font-variation-settings: 'wdth' 100;
   font-size: 17px; /* nothing below 16px — these are outdoor screens in daylight */
   line-height: 1.5;
   color: var(--ink);
   background: var(--surface);
 }
 
-body.admin {
-  --shell: 68rem;
-}
 
 /* Buttons do not inherit type from the page by default, and Tailwind's
    preflight is deliberately not loaded (see src/tailwind.css) — so any button
@@ -59,9 +63,12 @@ button {
   font: inherit;
 }
 
-/* The promoter shell paints its own near-white page with a faint green cast and
-   a soft glow in the top-right corner. */
-body.dashboard {
+/* The promoter shell and the admin console paint the same near-white page with
+   a faint green cast and a soft glow in the top-right corner. Both are built
+   from Tailwind utilities and bring their own chrome, so neither wants the
+   green topbar or the narrow `.shell` column. */
+body.dashboard,
+body.admin {
   /* The comp is drawn against a 16px root; the 17px body default would scale
      every unstyled string on this screen. */
   font-size: 16px;
@@ -216,14 +223,21 @@ legend.label {
   padding: 0;
 }
 
-input[type='text'],
-input[type='tel'],
-input[type='email'],
-input[type='url'],
-input[type='number'],
-input[type='password'],
-textarea,
-select {
+/* :where() zeroes the specificity of the whole list. Without it an
+   element+attribute selector (0,1,1) outranks a Tailwind utility (0,1,0), and
+   every input on the two shell-based consoles would ignore its own classes.
+   The auth and agent screens add no utilities, so they still get this. */
+:where(
+  input[type='text'],
+  input[type='tel'],
+  input[type='email'],
+  input[type='url'],
+  input[type='number'],
+  input[type='password'],
+  input[type='search'],
+  textarea,
+  select
+) {
   width: 100%;
   min-height: var(--tap);
   padding: 0.6rem 0.75rem;
@@ -234,7 +248,7 @@ select {
   border-radius: var(--radius);
 }
 
-textarea {
+:where(textarea) {
   min-height: 5rem;
   resize: vertical;
 }

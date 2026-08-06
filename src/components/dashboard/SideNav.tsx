@@ -1,5 +1,6 @@
-import { FiArrowRight, FiChevronDown, FiHelpCircle, FiLogOut } from 'react-icons/fi';
-import { TABS, type NavKey } from './BottomNav';
+import { FiArrowRight, FiChevronDown, FiLogOut } from 'react-icons/fi';
+import { AGENT_TABS, type NavKey } from './agentTabs';
+import { Avatar } from '../common/Avatar';
 
 /** 56px ring, 60% sweep in brand on a line track, with the figure centred. */
 function Donut(props: { percent: number }) {
@@ -28,27 +29,18 @@ function Donut(props: { percent: number }) {
 
 /**
  * Desktop sidebar: fixed, full height, flush to the viewport edge. Below lg it
- * is not rendered to the screen at all — BottomNav takes over.
+ * is not rendered at all — MobileBar's hamburger takes over.
  *
- * Tabs without a destination render as disabled rather than as links to
- * nowhere: Resources, Profile and Support are not built, and My Results only
- * exists once an attempt has been submitted.
+ * Every tab is a real screen; the shell supplies the hrefs.
  */
 export function SideNav(props: {
   active: NavKey;
-  hrefs: Partial<Record<NavKey, string>>;
   name: string;
   tier: string;
   percent: number;
+  photoHref?: string;
 }) {
   const percent = Math.round(props.percent);
-  const initials = props.name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? '')
-    .join('');
-
-  const tabs = [...TABS, { key: 'support' as NavKey, label: 'Support', Icon: FiHelpCircle }];
 
   return (
     <aside class="fixed inset-y-0 left-0 z-20 hidden w-[300px] flex-col border-r border-line bg-white p-5 lg:flex">
@@ -56,41 +48,25 @@ export function SideNav(props: {
 
       <nav aria-label="Sections">
         <ul class="m-0 flex list-none flex-col gap-1.5 p-0">
-          {tabs.map(({ key, label, Icon }) => {
-            const href = props.hrefs[key];
+          {AGENT_TABS.map(({ key, label, href, Icon }) => {
             const active = key === props.active;
-
-            const inner = (
-              <>
-                <span class={active ? 'text-brand' : 'text-muted'} aria-hidden="true">
-                  <Icon size={20} />
-                </span>
-                {label}
-              </>
-            );
-
-            const base =
-              'flex h-12 items-center gap-3.5 rounded-[10px] px-3.5 text-base no-underline transition-colors duration-150';
 
             return (
               <li>
-                {href ? (
-                  <a
-                    class={`${base} ${
-                      active
-                        ? 'bg-brand-mint font-semibold text-brand'
-                        : 'font-medium text-ink hover:bg-brand-tint'
-                    }`}
-                    href={href}
-                    aria-current={active ? 'page' : undefined}
-                  >
-                    {inner}
-                  </a>
-                ) : (
-                  <span class={`${base} cursor-not-allowed font-medium text-ink`} aria-disabled="true">
-                    {inner}
+                <a
+                  class={`flex h-12 items-center gap-3.5 rounded-[10px] px-3.5 text-base no-underline transition-colors duration-150 ${
+                    active
+                      ? 'bg-brand-mint font-semibold text-brand'
+                      : 'font-medium text-ink hover:bg-brand-tint'
+                  }`}
+                  href={href}
+                  aria-current={active ? 'page' : undefined}
+                >
+                  <span class={active ? 'text-brand' : 'text-muted'} aria-hidden="true">
+                    <Icon size={20} />
                   </span>
-                )}
+                  {label}
+                </a>
               </li>
             );
           })}
@@ -110,7 +86,7 @@ export function SideNav(props: {
 
         <a
           class="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-brand no-underline hover:underline"
-          href="#training-progress"
+          href="/dashboard#training-progress"
         >
           View Progress
           <FiArrowRight size={16} />
@@ -119,15 +95,10 @@ export function SideNav(props: {
 
       <div class="mt-auto">
         <div class="flex items-center gap-3 px-1 py-2">
-          <span
-            class="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-deep text-sm font-semibold text-white"
-            aria-hidden="true"
-          >
-            {initials}
-          </span>
+          <Avatar name={props.name} src={props.photoHref} size={40} />
           <span class="min-w-0 flex-1">
             <span class="block truncate text-sm font-semibold text-ink">{props.name}</span>
-            <span class="block text-xs text-muted">{props.tier} Promoter</span>
+            <span class="block text-xs text-muted">{props.tier} Sales Agent</span>
           </span>
           <span class="shrink-0 text-muted" aria-hidden="true">
             <FiChevronDown size={18} />
