@@ -1,8 +1,14 @@
 node_modules/
 .wrangler/
-.dev.vars
 dist/
-*.log
+
+# Secrets and local environment — never committed.
+.dev.vars
+.dev.vars.local
+.env
+.env.*
+!.dev.vars.example
+
 .DS_Store
 worker-configuration.d.ts
 

@@ -10,7 +10,7 @@ assets = { directory = "./public" }
 [alias]
 react = "./src/lib/react-shim.ts"
 
-# Components import their own stylesheet (see CLAUDE.md). Those imports are for
+# Components import their own stylesheet (see docs/architecture.md). Those are for
 # co-location only — the browser gets the concatenated public/styles.css — so
 # treat .css as text rather than letting the bundler fail on it.
 [[rules]]

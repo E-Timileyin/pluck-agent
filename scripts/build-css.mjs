@@ -3,7 +3,7 @@
  * component stylesheet, then Tailwind's utilities.
  *
  * Component CSS lives next to its component (Component.tsx / Component.css) per
- * the project convention in CLAUDE.md. The dashboard is the exception it is
+ * the project convention in docs/architecture.md. The dashboard is the exception it is
  * written in Tailwind utilities, generated from src/tailwind.css and appended
  * last so those utilities win on equal specificity.
  *
