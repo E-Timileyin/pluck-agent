@@ -33,13 +33,13 @@ const app = new Hono<AgentEnv>();
 app.get('/quiz', attemptGuard, async (c) => {
   const attempt = c.get('attempt');
   if (attempt.submittedAt) return c.redirect(`/results/${attempt.id}`);
-  if (!attempt.tutorialMode) return c.redirect('/learn');
+  // if (!attempt.tutorialMode) return c.redirect('/learn');
 
   const db = getDb(c.env.DB);
   const { question, answered, total } = await nextUnansweredQuestion(db, attempt.id);
 
   // The gate covers direct navigation here too, not just the Continue button.
-  if (answered === 0 && !(await gatePassed(db, attempt))) return c.redirect('/learn?early=1');
+  // if (answered === 0 && !(await gatePassed(db, attempt))) return c.redirect('/learn?early=1');
 
   const shell = await shellFor(db, attempt);
   if (!shell) return c.redirect('/');

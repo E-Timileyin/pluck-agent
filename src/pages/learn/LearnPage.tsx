@@ -1,37 +1,26 @@
 import { PromoterShell } from '../../components/common/PromoterShell';
 import { Alert } from '../../components/common/Alert';
-import { TrainingPlayer } from '../../components/learn/TrainingPlayer';
+import { LessonPlayer } from '../../components/learn/LessonPlayer';
 import { TrainingOverview } from '../../components/learn/TrainingOverview';
 import { ContinueGate } from '../../components/learn/ContinueGate';
-import { ChapterRail } from '../../components/learn/ChapterRail';
-import { OtherMaterial } from '../../components/learn/OtherMaterial';
-import type { TutorialMode } from '../../db/schema';
-import type { Module } from '../../lib/progress';
+import { CourseSidebar } from '../../components/learn/CourseSidebar';
+import type { LessonWithState } from '../../lib/lesson';
 import type { Shell } from '../../lib/shell';
 
-/**
- * My Training: the material on the left with its own timeline under it, the
- * course structure on the right. One screen for the whole training step —
- * choosing a format, working through it, and leaving for the quiz.
- */
 export function LearnPage(props: {
   shell: Shell;
-  mode: TutorialMode | null;
-  modules: Module[];
+  lesson: LessonWithState;
+  lessons: LessonWithState[];
+  mode?: string | null;
+  modules?: any[];
   elapsedSeconds: number;
   remainingSeconds: number;
   questionCount: number;
   criticalCount: number;
   error?: string;
 }) {
-  const { shell, mode } = props;
-  const { settings } = shell;
-
-  const other: TutorialMode = mode === 'video' ? 'slides' : 'video';
-  const otherUrl = other === 'video' ? settings.videoUrl : settings.slidesUrl;
-
-  const title =
-    mode === 'video' ? 'Training Video' : mode === 'slides' ? 'Training Slides' : 'Training';
+  const { shell, lesson, lessons, remainingSeconds, error } = props;
+  const isLastLesson = lesson?.order === lessons[lessons.length - 1]?.order;
 
   return (
     <PromoterShell
@@ -41,39 +30,35 @@ export function LearnPage(props: {
       wide
       script
       rail={
-        <>
-          <ChapterRail progress={shell.progress} mode={mode} />
-          <OtherMaterial modules={props.modules} progress={shell.progress} mode={mode} />
-        </>
+        <CourseSidebar lessons={lessons} progress={shell.progress} activeLessonId={lesson?.id} />
       }
     >
       <div class="mb-3">
         <h1 class="m-0 text-xl font-bold tracking-tight text-ink lg:text-2xl">Sales Agent Training</h1>
         <p class="m-0 mt-0.5 text-sm font-semibold text-brand">
-          Step 2 — {title}
-          {mode ? null : ' · pick a format to begin'}
+          Lesson {lesson?.order ?? 1} of {lessons.length} — {lesson?.title ?? 'Training'}
         </p>
       </div>
 
-      {props.error ? <Alert tone="error">{props.error}</Alert> : null}
+      {error ? <Alert tone="error">{error}</Alert> : null}
 
-      <TrainingPlayer
-        mode={mode}
-        settings={settings}
-        elapsedSeconds={props.elapsedSeconds}
-        remainingSeconds={props.remainingSeconds}
-        otherMode={mode && otherUrl ? other : null}
+      <LessonPlayer
+        lesson={lesson}
+        elapsedSeconds={lesson?.elapsedSeconds ?? 0}
+        remainingSeconds={remainingSeconds}
       />
 
       <TrainingOverview
-        passMark={settings.passMark}
+        passMark={shell.settings.passMark}
         questionCount={props.questionCount}
         criticalCount={props.criticalCount}
       />
 
-      {/* Only offered once a format has been chosen — POST /learn/continue
-          rejects it anyway, and a button that always fails is worse than none. */}
-      {mode ? <ContinueGate remainingSeconds={props.remainingSeconds} /> : null}
+      <ContinueGate
+        lessonId={lesson?.id}
+        remainingSeconds={remainingSeconds}
+        isLastLesson={isLastLesson}
+      />
     </PromoterShell>
   );
 }

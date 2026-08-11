@@ -53,7 +53,7 @@ app.post(
 );
 
 app.post('/restart', (c) => {
-  clearAttemptCookie(c);
+  // clearAttemptCookie(c);
   return c.redirect('/');
 });
 

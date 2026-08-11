@@ -1,23 +1,22 @@
-import { FiAward, FiCheckCircle, FiClock, FiShield, FiUser } from 'react-icons/fi';
+import { FiCheckCircle, FiClock } from 'react-icons/fi';
 import { PromoterShell } from '../../components/common/PromoterShell';
-import { Panel } from '../../components/common/Panel';
 import { DashboardGreeting } from '../../components/dashboard/DashboardGreeting';
 import { ProgressHero } from '../../components/dashboard/ProgressHero';
 import { FigureTile } from '../../components/dashboard/FigureTile';
+// import { GoalSummaryTile } from '../../components/dashboard/GoalSummaryTile';
+import { ContinueJourney } from '../../components/dashboard/ContinueJourney';
+import { ScoresPanel } from '../../components/dashboard/ScoresPanel';
 import { CertificationGoal } from '../../components/dashboard/CertificationGoal';
-import { AttemptBars } from '../../components/dashboard/AttemptBars';
-import { MiniTile } from '../../components/dashboard/MiniTile';
 import type { Attempt } from '../../db/schema';
 import type { Module, Resume } from '../../lib/progress';
 import type { Shell } from '../../lib/shell';
 import { firstName, formatClock } from '../../lib/format';
 
 /**
- * A bento grid sized to one screen: the headline figure, the two that support
- * it, the goal, the score history and the way into everything else.
- *
- * Every tile is real state — there is no placeholder anywhere here, which is
- * the whole reason it is worth showing anyone.
+ * One screen, two rows. Row one is four single-number tiles — the same
+ * numbers a promoter would ask about if they called support. Row two is
+ * "what do I do next" (left) and "how far to certified" (right). Nothing
+ * here duplicates the sidebar, and nothing here is a placeholder.
  */
 export function DashboardPage(props: {
   shell: Shell;
@@ -48,15 +47,12 @@ export function DashboardPage(props: {
       shell={shell}
       active="dashboard"
       wide
-      header={
-        <DashboardGreeting greeting={shell.greeting} firstName={firstName(promoter.name)} />
-      }
+      header={<DashboardGreeting greeting={shell.greeting} firstName={firstName(promoter.name)} />}
     >
-      {/* Tiles size to their content — a fixed row height stretched them and
-          left dead space in the middle of every card. Equal heights come from
-          `h-full` within a row, not from the grid being told how tall to be. */}
-      <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-        <ProgressHero progress={progress} resume={props.resume} resumeHref={props.resumeHref} />
+      {/* Row 1 — four single-number tiles. Progress is twice as wide as the
+          rest, same as the comp: it is the number the other three explain. */}
+      <div class="grid gap-3 lg:grid-cols-4">
+        <ProgressHero progress={progress} />
 
         <FigureTile
           Icon={FiCheckCircle}
@@ -64,11 +60,6 @@ export function DashboardPage(props: {
           period={progress.totalQuestions === 0 ? 'not published' : 'this attempt'}
           value={String(progress.answered)}
           unit={`/ ${progress.totalQuestions}`}
-          chip={
-            progress.totalQuestions > 0 && progress.answered >= progress.totalQuestions
-              ? { text: 'All answered', tone: 'good' }
-              : undefined
-          }
           note={
             progress.totalQuestions === 0
               ? 'No questions have been published yet.'
@@ -90,43 +81,18 @@ export function DashboardPage(props: {
           note="Checked on the server. The countdown on the training screen is display only."
         />
 
-        {/* ---- second row ---- */}
+        {/* <GoalSummaryTile passMark={settings.passMark} /> */}
+      </div>
 
-        <CertificationGoal
-          percent={progress.percent}
-          passMark={settings.passMark}
-          modules={props.modules}
-        />
-
-        <div class="lg:col-span-2">
-          <AttemptBars bars={bars} passMark={settings.passMark} />
+      {/* Row 2 — next actions (left, 2/3) and the certification goal (right,
+          1/3). This is the only place the gauge and the module list live. */}
+      <div class="mt-3 grid gap-3 lg:grid-cols-3">
+        <div class="grid content-start gap-3 lg:col-span-2">
+          <ContinueJourney resume={props.resume} resumeHref={props.resumeHref} />
+          <ScoresPanel bars={bars} />
         </div>
 
-        <div class="grid content-start gap-3">
-          <Panel tone="tint">
-            <h2 class="m-0 mb-2 flex items-center gap-2.5 text-sm font-semibold text-ink">
-              <span
-                class="flex size-8 items-center justify-center rounded-full bg-white text-brand-deep"
-                aria-hidden="true"
-              >
-                <FiShield size={15} />
-              </span>
-              Why this matters
-            </h2>
-            <p class="m-0 text-[13px]/[1.5] text-muted">
-              This training proves you understand how commission, credit checks and customer money
-              work. Your certification is what lets you sell.
-            </p>
-          </Panel>
-
-          {/* Only the two screens this one hands off to. Resources and Support
-              are a click away in the sidebar and do not need repeating here. */}
-          <div class="grid grid-cols-2 gap-3">
-            <MiniTile Icon={FiAward} label="History" title="My results" href="/results" />
-            <MiniTile Icon={FiUser} label="You" title="Profile" href="/profile" />
-          </div>
-        </div>
-
+        <CertificationGoal percent={progress.percent} passMark={settings.passMark} modules={props.modules} />
       </div>
     </PromoterShell>
   );
