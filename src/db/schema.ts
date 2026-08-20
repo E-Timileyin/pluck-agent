@@ -23,6 +23,12 @@ const bytes = customType<{ data: ArrayBuffer; driverData: ArrayBuffer | number[]
 export const settings = sqliteTable('settings', {
   id: integer('id').primaryKey(), // always 1
   videoUrl: text('video_url'),
+  /**
+   * R2 object key for a video uploaded straight from the settings screen, as an
+   * alternative to pasting a Drive link. When set, this wins over `videoUrl` —
+   * see toVideoSrc() in lib/drive.ts. Cleared when the video is removed.
+   */
+  videoKey: text('video_key'),
   slidesUrl: text('slides_url'),
   minTutorialSeconds: integer('min_tutorial_seconds').notNull().default(45),
   passMark: integer('pass_mark').notNull().default(80),
@@ -48,6 +54,12 @@ export const admins = sqliteTable('admins', {
   name: text('name').notNull(),
   email: text('email').notNull().unique(), // stored lower-cased
   passwordHash: text('password_hash').notNull(),
+  /**
+   * The admin who can create other admins. Exactly one per deployment: the
+   * account created through /admin/setup. Everyone else is a regular admin —
+   * they can run the console but `POST /admin/team` is refused for them.
+   */
+  isSuperAdmin: integer('is_super_admin', { mode: 'boolean' }).notNull().default(false),
   createdAt: text('created_at').notNull(),
   lastLoginAt: text('last_login_at'),
 });
@@ -69,6 +81,13 @@ export const questions = sqliteTable(
 
 export const promoters = sqliteTable('promoters', {
   id: text('id').primaryKey(),
+  /**
+   * The identifier assigned by the main app, e.g. "SAG392585". This is what
+   * an admin imports from the exported roster and what /start checks against
+   * — sign-in is no longer self-registration, it's a match against this row's
+   * agentId + phone + email. See docs/flow.md §1.
+   */
+  agentId: text('agent_id').notNull().unique(),
   name: text('name').notNull(),
   phone: text('phone').notNull().unique(), // stored as +234XXXXXXXXXX
   tier: text('tier', { enum: ['SP1', 'SP2', 'SP3'] })
