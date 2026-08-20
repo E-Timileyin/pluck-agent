@@ -1,26 +1,14 @@
-import type { Child } from 'hono/jsx';
-import { Layout } from '../common/Layout';
-import { PageHeader } from '../common/PageHeader';
-import { FiExternalLink, FiLogOut } from 'react-icons/fi';
-import { AdminRail } from './AdminRail';
-import { TopNav } from '../common/TopNav';
-import { ADMIN_TABS, type AdminNavKey } from './adminTabs';
-import type { Admin } from '../../db/schema';
+import type { Child } from "hono/jsx";
+import { Layout } from "../common/Layout";
+import { PageHeader } from "../common/PageHeader";
+import { FiExternalLink, FiLogOut } from "react-icons/fi";
+import { AdminRail } from "./AdminRail";
+import { TopNav } from "../common/TopNav";
+import { ADMIN_TABS, type AdminNavKey } from "./adminTabs";
+import type { Admin } from "../../db/schema";
 
 export type { AdminNavKey };
 
-/**
- * The chrome every console screen sits inside: a floating icon capsule centred
- * on the left edge, a sticky bar across the top, then one wide content column.
- *
- * Both carry the same four destinations on purpose. The capsule is reachable
- * without moving your eyes from the middle of the screen; the bar spells the
- * sections out in words and holds the account and the two controls that are not
- * sections. On a phone the capsule stays put and the bar's pills scroll.
- *
- * The agent app keeps its labelled sidebar instead — it is used one-handed by
- * people meeting the app once, where a wordless icon is a guess.
- */
 export function AdminShell(props: {
   title: string;
   active: AdminNavKey;
@@ -38,7 +26,7 @@ export function AdminShell(props: {
     <Layout title={props.title} variant="admin">
       <AdminRail active={props.active} />
 
-      <div class="pl-[72px]">
+      <div class="lg:pl-[72px]">
         <TopNav
           tabs={ADMIN_TABS}
           active={props.active}
@@ -70,17 +58,25 @@ export function AdminShell(props: {
               </form>
             </>
           }
+          mobileActions={[{ label: 'Sales agent view', href: '/dashboard', Icon: FiExternalLink }]}
+          logoutHref="/admin/logout"
         />
 
-        <div class="mx-auto w-full max-w-[1400px] px-4 py-5 lg:px-6 lg:py-6">
+        <div class="w-full px-4 py-5 sm:px-5 sm:py-6 lg:px-8 lg:py-8">
           {props.bare ? null : (
-            <PageHeader title={props.heading ?? props.title} sub={props.sub} actions={props.actions} />
+            <PageHeader
+              title={props.heading ?? props.title}
+              sub={props.sub}
+              actions={props.actions}
+            />
           )}
 
           {props.children}
 
           <p class="mt-8 flex justify-between gap-4 border-t border-line pt-3 text-[13px] text-muted">
-            <span>© {new Date().getUTCFullYear()} Pluck. All rights reserved.</span>
+            <span>
+              © {new Date().getUTCFullYear()} Pluck. All rights reserved.
+            </span>
             <span>Training console</span>
           </p>
         </div>
