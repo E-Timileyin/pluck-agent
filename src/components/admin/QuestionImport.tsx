@@ -1,16 +1,13 @@
-import { FiAlertTriangle, FiUpload } from 'react-icons/fi';
-import { Card } from '../common/Card';
-import { Button } from '../common/Button';
-import { Field, TEXTAREA } from '../common/Field';
-import { IMPORT_TIER, QUESTION_JSON_EXAMPLE, QUESTION_PROMPT } from '../../lib/questionFormat';
+import { FiAlertTriangle, FiUpload } from "react-icons/fi";
+import { Card } from "../common/Card";
+import { Button } from "../common/Button";
+import { Field, TEXTAREA } from "../common/Field";
+import {
+  IMPORT_TIER,
+  QUESTION_JSON_EXAMPLE,
+  QUESTION_PROMPT,
+} from "../../lib/questionFormat";
 
-/**
- * Bulk authoring: paste the JSON an AI wrote, or upload the file it saved.
- *
- * Nothing is imported half-way — the whole file is validated first, and a
- * single bad question rejects the lot with the question number said out loud.
- * A partial import is worse than none, because you cannot tell what landed.
- */
 export function QuestionImport(props: {
   /** Kept so a rejected paste is not lost. */
   json?: string;
@@ -24,7 +21,7 @@ export function QuestionImport(props: {
       >
         {props.errors && props.errors.length > 0 ? (
           <div class="mb-4 rounded-xl bg-[#ffe6e0] p-4" role="alert">
-            <p class="m-0 mb-2 flex items-center gap-2 text-[15px] font-semibold text-miss">
+            <p class="m-0 mb-2 flex items-center gap-2 text-[15px] font-medium text-miss">
               <FiAlertTriangle size={18} />
               Nothing was imported.
             </p>
@@ -42,7 +39,10 @@ export function QuestionImport(props: {
           enctype="multipart/form-data"
           class="grid gap-5"
         >
-          <Field label="JSON" hint="Paste the whole object, starting with { and ending with }.">
+          <Field
+            label="JSON"
+            hint="Paste the whole object, starting with { and ending with }."
+          >
             <textarea
               class={`${TEXTAREA} min-h-48 font-mono text-[13px]/[1.6]`}
               name="json"
@@ -50,13 +50,17 @@ export function QuestionImport(props: {
               spellcheck={false}
               placeholder={QUESTION_JSON_EXAMPLE}
             >
-              {props.json ?? ''}
+              {props.json ?? ""}
             </textarea>
           </Field>
 
-          <Field label="…or upload the file" optional hint="A .json file. It wins if you do both.">
+          <Field
+            label="…or upload the file"
+            optional
+            hint="A .json file. It wins if you do both."
+          >
             <input
-              class="w-full rounded-xl border border-line bg-white p-3 text-[15px] text-ink file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-brand-mint file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-brand-ink"
+              class="w-full rounded-xl border border-line bg-white p-3 text-[15px] text-ink file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-brand-mint file:px-4 file:py-2.5 file:text-sm file:font-medium file:text-brand-ink"
               type="file"
               name="file"
               accept="application/json,.json,text/plain"
@@ -72,8 +76,9 @@ export function QuestionImport(props: {
             <span>
               Deactivate the current questions first
               <span class="mt-0.5 block text-[13px] text-muted">
-                The old questions stay in the database and every past result still reads correctly —
-                they simply stop being asked. Nothing is ever deleted.
+                The old questions stay in the database and every past result
+                still reads correctly — they simply stop being asked. Nothing is
+                ever deleted.
               </span>
             </span>
           </label>

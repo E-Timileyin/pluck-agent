@@ -22,7 +22,7 @@ export function SearchField(props: { action: string; value?: string; placeholder
         />
       </span>
       <button
-        class="h-12 shrink-0 cursor-pointer rounded-xl bg-brand px-5 text-[15px] font-semibold text-white"
+        class="h-12 shrink-0 cursor-pointer rounded-xl border-0 bg-brand px-5 text-[15px] font-medium text-white"
         type="submit"
       >
         Search

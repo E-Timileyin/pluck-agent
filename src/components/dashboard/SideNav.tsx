@@ -1,6 +1,6 @@
-import { FiArrowRight, FiChevronDown, FiLogOut } from 'react-icons/fi';
-import { AGENT_TABS, type NavKey } from './agentTabs';
-import { Avatar } from '../common/Avatar';
+import { FiArrowRight, FiChevronDown, FiLogOut } from "react-icons/fi";
+import { AGENT_TABS, type NavKey } from "./agentTabs";
+import { Avatar } from "../common/Avatar";
 
 /** 56px ring, 60% sweep in brand on a line track, with the figure centred. */
 function Donut(props: { percent: number }) {
@@ -10,7 +10,14 @@ function Donut(props: { percent: number }) {
   return (
     <span class="relative flex size-14 shrink-0 items-center justify-center">
       <svg class="size-14 -rotate-90" viewBox="0 0 56 56" aria-hidden="true">
-        <circle cx="28" cy="28" r={r} fill="none" stroke="var(--color-line)" stroke-width="5" />
+        <circle
+          cx="28"
+          cy="28"
+          r={r}
+          fill="none"
+          stroke="var(--color-line)"
+          stroke-width="5"
+        />
         <circle
           cx="28"
           cy="28"
@@ -22,7 +29,9 @@ function Donut(props: { percent: number }) {
           stroke-dasharray={`${(c * props.percent) / 100} ${c}`}
         />
       </svg>
-      <span class="absolute text-[13px] font-bold text-ink">{props.percent}%</span>
+      <span class="absolute text-[13px] font-semibold text-ink">
+        {props.percent}%
+      </span>
     </span>
   );
 }
@@ -56,13 +65,16 @@ export function SideNav(props: {
                 <a
                   class={`flex h-12 items-center gap-3.5 rounded-[10px] px-3.5 text-base no-underline transition-colors duration-150 ${
                     active
-                      ? 'bg-brand-mint font-semibold text-brand'
-                      : 'font-medium text-ink hover:bg-brand-tint'
+                      ? "bg-brand-mint font-medium text-brand"
+                      : "font-medium text-ink hover:bg-brand-tint"
                   }`}
                   href={href}
-                  aria-current={active ? 'page' : undefined}
+                  aria-current={active ? "page" : undefined}
                 >
-                  <span class={active ? 'text-brand' : 'text-muted'} aria-hidden="true">
+                  <span
+                    class={active ? "text-brand" : "text-muted"}
+                    aria-hidden="true"
+                  >
                     <Icon size={20} />
                   </span>
                   {label}
@@ -77,7 +89,7 @@ export function SideNav(props: {
         <div class="flex items-start gap-3">
           <Donut percent={percent} />
           <div class="min-w-0">
-            <p class="m-0 mb-1 text-base font-semibold text-ink">Keep Going!</p>
+            <p class="m-0 mb-1 text-base font-medium text-ink">Keep Going!</p>
             <p class="m-0 text-[13px]/[1.5] text-muted">
               Complete your training and pass the quiz to get certified.
             </p>
@@ -85,7 +97,7 @@ export function SideNav(props: {
         </div>
 
         <a
-          class="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-brand no-underline hover:underline"
+          class="mt-3 inline-flex items-center gap-2 text-sm font-medium text-brand no-underline hover:underline"
           href="/dashboard#training-progress"
         >
           View Progress
@@ -97,8 +109,12 @@ export function SideNav(props: {
         <div class="flex items-center gap-3 px-1 py-2">
           <Avatar name={props.name} src={props.photoHref} size={40} />
           <span class="min-w-0 flex-1">
-            <span class="block truncate text-sm font-semibold text-ink">{props.name}</span>
-            <span class="block text-xs text-muted">{props.tier} Sales Agent</span>
+            <span class="block truncate text-sm font-medium text-ink">
+              {props.name}
+            </span>
+            <span class="block text-xs text-muted">
+              {props.tier} Sales Agent
+            </span>
           </span>
           <span class="shrink-0 text-muted" aria-hidden="true">
             <FiChevronDown size={18} />
@@ -106,13 +122,17 @@ export function SideNav(props: {
         </div>
 
         {/* Clears the attempt cookie and returns to the start form. */}
-        <form method="post" action="/restart" class="mt-2 border-t border-line pt-2">
+        <form
+          method="post"
+          action="/logout"
+          class="mt-2 border-t border-line pt-2"
+        >
           <button
             class="flex h-11 w-full cursor-pointer items-center gap-3 rounded-[10px] border-0 bg-transparent px-3 text-sm text-muted transition-colors duration-150 hover:bg-brand-tint"
             type="submit"
           >
-            <FiLogOut size={20} />
             Log out
+            <FiLogOut size={20} />
           </button>
         </form>
       </div>

@@ -1,13 +1,13 @@
-import { FiAlertTriangle, FiAward, FiPlayCircle, FiUsers } from 'react-icons/fi';
-import { StatTile } from '../common/StatTile';
-import { Card } from '../common/Card';
-import type { DashboardStats } from '../../db/queries';
+import {
+  FiAlertTriangle,
+  FiAward,
+  FiPlayCircle,
+  FiUsers,
+} from "react-icons/fi";
+import { StatTile } from "../common/StatTile";
+import { Card } from "../common/Card";
+import type { DashboardStats } from "../../db/queries";
 
-/**
- * The four figures the console opens with. Three describe the promoters; the
- * last describes the training material — if everyone misses the commission
- * question, the deck is unclear, not the promoters.
- */
 export function OverviewStats(props: { stats: DashboardStats }) {
   const { stats } = props;
   const unfinished = stats.attempts - stats.completed;
@@ -18,13 +18,13 @@ export function OverviewStats(props: { stats: DashboardStats }) {
         Icon={FiUsers}
         label="Attempts"
         value={String(stats.attempts)}
-        note={`${stats.uniquePromoters} unique sales ${stats.uniquePromoters === 1 ? 'agent' : 'agents'}`}
+        note={`${stats.uniquePromoters} unique sales ${stats.uniquePromoters === 1 ? "agent" : "agents"}`}
       />
 
       <StatTile
         Icon={FiAward}
         label="Pass rate"
-        value={stats.passRate === null ? '—' : `${stats.passRate}%`}
+        value={stats.passRate === null ? "—" : `${stats.passRate}%`}
         percent={stats.passRate ?? undefined}
         note={`${stats.completed} completed · ${unfinished} unfinished`}
       />
@@ -49,7 +49,9 @@ export function OverviewStats(props: { stats: DashboardStats }) {
 
         {stats.mostMissed ? (
           <>
-            <p class="m-0 text-[15px]/[1.45] font-semibold text-ink">{stats.mostMissed.prompt}</p>
+            <p class="m-0 text-[15px]/[1.45] font-medium text-ink">
+              {stats.mostMissed.prompt}
+            </p>
             <p class="m-0 mt-2 text-[13px] text-muted">
               missed {stats.mostMissed.missed} of {stats.mostMissed.asked} times
             </p>

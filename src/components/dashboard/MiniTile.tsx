@@ -30,10 +30,10 @@ export function MiniTile(props: {
       </span>
 
       <span class="block">
-        <span class="block text-[11px] font-semibold tracking-wide text-muted uppercase">
+        <span class="block text-[11px] font-medium tracking-wide text-muted uppercase">
           {props.label}
         </span>
-        <span class="mt-0.5 block text-sm font-semibold text-ink">{props.title}</span>
+        <span class="mt-0.5 block text-sm font-medium text-ink">{props.title}</span>
       </span>
     </a>
   );

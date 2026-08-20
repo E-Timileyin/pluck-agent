@@ -25,7 +25,7 @@ export function PanelHead(props: {
         <span class={`flex size-9 shrink-0 items-center justify-center rounded-full ${chip}`} aria-hidden="true">
           <props.Icon size={18} />
         </span>
-        <h2 class="m-0 truncate text-base font-semibold">{props.title}</h2>
+        <h2 class="m-0 truncate text-lg font-medium text-ink lg:text-base">{props.title}</h2>
       </div>
       {props.aside ? <div class="shrink-0">{props.aside}</div> : null}
     </div>

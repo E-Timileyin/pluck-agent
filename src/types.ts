@@ -1,11 +1,10 @@
-import type { Admin, Attempt } from './db/schema';
+import type { Admin, Attempt } from "./db/schema";
 
 export type Bindings = {
   DB: D1Database;
-  /**
-   * One-time setup key for creating the first admin account. Sign-in itself
-   * uses named accounts in the `admins` table, not this.
-   */
+  /** The uploaded training video, when an admin uses R2 instead of a Drive link. */
+  TRAINING_MEDIA: R2Bucket;
+
   ADMIN_PASSCODE: string;
   /** 32+ random chars. Signs both cookies. */
   SESSION_SECRET: string;

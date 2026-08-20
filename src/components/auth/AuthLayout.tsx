@@ -48,7 +48,7 @@ export function AuthLayout(props: {
             <img class="h-11 w-auto self-start" src="/logo-dark.png" alt="Pluck" />
 
             <div class="mt-auto">
-              <h2 class="m-0 max-w-[16ch] text-[38px] leading-[1.1] font-bold tracking-tight text-white">
+              <h2 class="m-0 max-w-[16ch] text-[38px] leading-[1.1] font-semibold tracking-tight text-white">
                 {props.panelTitle}
               </h2>
               <p class="m-0 mt-3 max-w-[46ch] text-[15px]/[1.6] text-white/85">{props.panelCopy}</p>
@@ -63,7 +63,7 @@ export function AuthLayout(props: {
                       <Icon size={18} />
                     </span>
                     <span class="min-w-0">
-                      <span class="block text-sm font-semibold text-white">{title}</span>
+                      <span class="block text-sm font-medium text-white">{title}</span>
                       <span class="block text-[13px] text-white/75">{copy}</span>
                     </span>
                   </li>
@@ -83,7 +83,7 @@ export function AuthLayout(props: {
             {/* Phone only — from lg the panel carries the wordmark. */}
             <img class="mx-auto mb-8 h-9 w-auto lg:hidden" src="/logo-dark.png" alt="Pluck" />
 
-            <h1 class="m-0 text-center text-[34px] leading-[1.15] font-bold tracking-tight text-ink lg:text-[40px]">
+            <h1 class="m-0 text-center text-[34px] leading-[1.15] font-semibold tracking-tight text-ink lg:text-[40px]">
               {props.heading}
             </h1>
             {props.sub ? (

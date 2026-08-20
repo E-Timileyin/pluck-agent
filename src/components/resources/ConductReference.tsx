@@ -17,7 +17,7 @@ export function ConductReference() {
         {CONDUCT_RULES.map((rule, i) => (
           <li class="flex items-start gap-3 rounded-xl bg-brand-tint p-4">
             <span
-              class="flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-[13px] font-bold text-brand-deep"
+              class="flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-[13px] font-semibold text-brand-deep"
               aria-hidden="true"
             >
               {i + 1}

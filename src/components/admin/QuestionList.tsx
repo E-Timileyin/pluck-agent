@@ -24,20 +24,20 @@ export function QuestionList(props: { questions: Question[] }) {
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0">
               <div class="mb-2 flex flex-wrap items-center gap-2">
-                <span class="rounded-md bg-step-idle px-2 py-0.5 text-xs font-semibold text-muted">
+                <span class="rounded-md bg-step-idle px-2 py-0.5 text-xs font-medium text-muted">
                   #{q.orderIndex}
                 </span>
                 {q.isCritical ? <StatusPill tone="pass">Compliance</StatusPill> : null}
                 {q.isActive ? null : <StatusPill>Inactive</StatusPill>}
               </div>
 
-              <p class="m-0 text-[15px]/[1.5] font-semibold text-ink">{q.prompt}</p>
+              <p class="m-0 text-[15px]/[1.5] font-medium text-ink">{q.prompt}</p>
 
               <ul class="m-0 mt-3 grid list-none gap-1.5 p-0">
                 {q.options.map((option, i) => (
                   <li
                     class={`flex items-center gap-2 text-sm ${
-                      i === q.correctIndex ? 'font-semibold text-brand-ink' : 'text-muted'
+                      i === q.correctIndex ? 'font-medium text-brand-ink' : 'text-muted'
                     }`}
                   >
                     <span class="flex w-4 shrink-0 justify-center" aria-hidden="true">

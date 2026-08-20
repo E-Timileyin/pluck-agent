@@ -35,7 +35,7 @@ export function InfoPanel(props: { promoter: Promoter; supportPhone?: string | n
   return (
     <div class="mt-3 grid gap-3 lg:mt-0">
       <section class="rounded-2xl border border-line bg-white p-4 lg:p-5">
-        <h2 class="m-0 mb-3 text-base font-semibold text-ink">Your Information</h2>
+        <h2 class="m-0 mb-3 text-base font-medium text-ink">Your Information</h2>
         <dl class="m-0 grid gap-2.5">
           {rows.map(({ Icon, label, value }) => (
             <div class="flex items-center gap-3">
@@ -50,7 +50,7 @@ export function InfoPanel(props: { promoter: Promoter; supportPhone?: string | n
 
       <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
         <section class="rounded-2xl bg-brand-tint p-4 lg:p-5">
-          <h2 class="m-0 mb-2 flex items-center gap-2.5 text-base font-semibold text-ink">
+          <h2 class="m-0 mb-2 flex items-center gap-2.5 text-base font-medium text-ink">
             <span
               class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-brand"
               aria-hidden="true"
@@ -66,7 +66,7 @@ export function InfoPanel(props: { promoter: Promoter; supportPhone?: string | n
         </section>
 
         <section class="rounded-2xl border border-line bg-white p-4 lg:p-5">
-          <h2 class="m-0 mb-2 text-base font-semibold text-ink">Need Help?</h2>
+          <h2 class="m-0 mb-2 text-base font-medium text-ink">Need Help?</h2>
           <p class="m-0 mb-3 text-[13px]/[1.5] text-muted">
             {props.supportPhone
               ? 'Stuck on the material, the quiz or your phone number? The support desk can help.'
@@ -75,7 +75,7 @@ export function InfoPanel(props: { promoter: Promoter; supportPhone?: string | n
           {/* Always the Support screen, never a raw tel: link — that screen is
               where the answer usually is, and it offers the call itself. */}
           <a
-            class="flex min-h-11 w-full items-center justify-center gap-2.5 rounded-xl bg-brand-mint px-4 text-sm font-semibold text-brand-deep no-underline transition-colors duration-150 hover:bg-brand hover:text-white"
+            class="flex min-h-11 w-full items-center justify-center gap-2.5 rounded-xl bg-brand-mint px-4 text-sm font-medium text-brand-deep no-underline transition-colors duration-150 hover:bg-brand hover:text-white"
             href="/support"
           >
             <FiHeadphones size={17} />

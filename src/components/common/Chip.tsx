@@ -18,7 +18,7 @@ export function Chip(props: {
 
   return (
     <span
-      class={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${tone}`}
+      class={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap ${tone}`}
     >
       {props.Icon ? <props.Icon size={13} /> : null}
       {props.children}

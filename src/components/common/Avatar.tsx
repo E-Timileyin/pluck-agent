@@ -28,7 +28,7 @@ export function Avatar(props: {
 
   return (
     <span
-      class={`${box} flex items-center justify-center bg-brand-deep font-semibold text-white`}
+      class={`${box} flex items-center justify-center bg-brand-deep font-medium text-white`}
       style={`${style};font-size:${Math.round(size * 0.36)}px`}
       aria-hidden="true"
     >

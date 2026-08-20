@@ -19,12 +19,12 @@ export function EmptyState(props: {
       >
         <props.Icon size={22} />
       </span>
-      <p class="m-0 mb-1 text-base font-semibold text-ink">{props.title}</p>
+      <p class="m-0 mb-1 text-base font-medium text-ink">{props.title}</p>
       <p class="m-0 mx-auto max-w-[46ch] text-[15px]/[1.6] text-muted">{props.copy}</p>
 
       {props.actionHref && props.actionLabel ? (
         <a
-          class="mt-5 inline-flex min-h-12 items-center rounded-xl bg-brand px-6 text-[15px] font-semibold text-white no-underline"
+          class="mt-5 inline-flex min-h-12 items-center rounded-xl bg-brand px-6 text-[15px] font-medium text-white no-underline"
           href={props.actionHref}
         >
           {props.actionLabel}

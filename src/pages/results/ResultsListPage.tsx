@@ -1,23 +1,15 @@
-import { FiAward, FiCheckCircle, FiClock, FiRepeat } from 'react-icons/fi';
-import { PromoterShell } from '../../components/common/PromoterShell';
-import { PageHeader } from '../../components/common/PageHeader';
-import { EmptyState } from '../../components/common/EmptyState';
-import { Panel } from '../../components/common/Panel';
-import { PanelHead } from '../../components/common/PanelHead';
-import { FigureTile } from '../../components/dashboard/FigureTile';
-import { AttemptCard } from '../../components/results/AttemptCard';
-import { percentOf } from '../../components/results/ResultsOverview';
-import type { Attempt } from '../../db/schema';
-import type { Shell } from '../../lib/shell';
+import { FiAward, FiCheckCircle, FiClock, FiRepeat } from "react-icons/fi";
+import { PromoterShell } from "../../components/common/PromoterShell";
+import { PageHeader } from "../../components/common/PageHeader";
+import { EmptyState } from "../../components/common/EmptyState";
+import { Panel } from "../../components/common/Panel";
+import { PanelHead } from "../../components/common/PanelHead";
+import { FigureTile } from "../../components/dashboard/FigureTile";
+import { AttemptCard } from "../../components/results/AttemptCard";
+import { percentOf } from "../../components/results/ResultsOverview";
+import type { Attempt } from "../../db/schema";
+import type { Shell } from "../../lib/shell";
 
-/**
- * Every attempt this sales agent has made, newest first — the nav's "My
- * Results" lands here whether or not anything has been submitted, so the tab is
- * never a dead end.
- *
- * Same tile grid as the dashboard: three figures across the top, the history
- * beneath. No page on the agent side has its own layout language.
- */
 export function ResultsListPage(props: {
   shell: Shell;
   attempts: Attempt[];
@@ -38,7 +30,7 @@ export function ResultsListPage(props: {
       header={
         <PageHeader
           title="My Results"
-          sub="Your score, and every answer you gave — including the ones you missed."
+          sub="Your score, and every answer you gave including the ones you missed."
         />
       }
     >
@@ -46,7 +38,7 @@ export function ResultsListPage(props: {
         <EmptyState
           Icon={FiAward}
           title="No attempts yet"
-          copy="Work through the training and take the quiz — your score and a full review of your answers appear here."
+          copy="Work through the training and take the quiz your score and a full review of your answers appear here."
           actionHref="/learn"
           actionLabel="Start training"
         />
@@ -55,12 +47,12 @@ export function ResultsListPage(props: {
           <FigureTile
             Icon={FiCheckCircle}
             title="Certification"
-            period={passed ? 'passed' : 'not yet'}
-            value={passed ? 'Passed' : submitted.length > 0 ? 'Not yet' : '—'}
-            chip={passed ? { text: 'Certified', tone: 'good' } : undefined}
+            period={passed ? "passed" : "not yet"}
+            value={passed ? "Passed" : submitted.length > 0 ? "Not yet" : "—"}
+            chip={passed ? { text: "Certified", tone: "good" } : undefined}
             note={
               passed
-                ? 'You have met the standard for your tier.'
+                ? "You have met the standard for your tier."
                 : `${settings.passMark}% and every compliance question right.`
             }
           />
@@ -68,13 +60,19 @@ export function ResultsListPage(props: {
           <FigureTile
             Icon={FiAward}
             title="Best score"
-            period={submitted.length > 0 ? 'submitted' : 'no data'}
-            value={submitted.length > 0 ? String(best) : '—'}
-            unit={submitted.length > 0 ? '%' : undefined}
+            period={submitted.length > 0 ? "submitted" : "no data"}
+            value={submitted.length > 0 ? String(best) : "—"}
+            unit={submitted.length > 0 ? "%" : undefined}
             note={`Pass mark is ${settings.passMark}%.`}
           >
-            <span class="block h-2 overflow-hidden rounded-full bg-line" aria-hidden="true">
-              <span class="block h-full rounded-full bg-brand" style={`width:${best}%`}></span>
+            <span
+              class="block h-2 overflow-hidden rounded-full bg-line"
+              aria-hidden="true"
+            >
+              <span
+                class="block h-full rounded-full bg-brand"
+                style={`width:${best}%`}
+              ></span>
             </span>
           </FigureTile>
 

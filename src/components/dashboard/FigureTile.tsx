@@ -32,23 +32,23 @@ export function FigureTile(props: {
           >
             <props.Icon size={18} />
           </span>
-          <h2 class="m-0 truncate text-base font-semibold text-ink">{props.title}</h2>
+          <h2 class="m-0 truncate text-lg font-medium text-ink lg:text-base">{props.title}</h2>
         </div>
 
         {props.period ? (
-          <span class="shrink-0 rounded-full border border-line px-2.5 py-1 text-[10px] font-semibold tracking-wide text-muted uppercase">
+          <span class="shrink-0 rounded-full border border-line px-2.5 py-1 text-[10px] font-medium tracking-wide text-muted uppercase">
             {props.period}
           </span>
         ) : null}
       </div>
 
       <p class="m-0 flex flex-wrap items-baseline gap-2">
-        <span class="text-[30px] leading-none font-bold tracking-tight text-ink">{props.value}</span>
-        {props.unit ? <span class="text-base font-semibold text-muted">{props.unit}</span> : null}
+        <span class="text-[34px] leading-none font-semibold tracking-tight text-ink lg:text-[30px]">{props.value}</span>
+        {props.unit ? <span class="text-lg font-medium text-muted lg:text-base">{props.unit}</span> : null}
         {props.chip ? <Chip tone={props.chip.tone}>{props.chip.text}</Chip> : null}
       </p>
 
-      {props.note ? <p class="m-0 mt-2 text-[13px]/[1.5] text-muted">{props.note}</p> : null}
+      {props.note ? <p class="m-0 mt-2 text-[15px]/[1.5] text-muted lg:text-[13px]/[1.5]">{props.note}</p> : null}
 
       {props.children ? (
         <div class="mt-3 border-t border-line pt-3">{props.children}</div>

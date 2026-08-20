@@ -24,3 +24,33 @@ export async function gatePassed(db: Db, attempt: Attempt): Promise<boolean> {
   const { minTutorialSeconds } = await getSettings(db);
   return elapsedSeconds(attempt.tutorialStartedAt) >= minTutorialSeconds;
 }
+
+/**
+ * A second fail in a row means something isn't landing — five minutes to
+ * step away before the material is offered again, rather than an agent
+ * guessing their way through a third attempt back to back.
+ */
+export const RETRY_COOLDOWN_SECONDS = 5 * 60;
+
+/**
+ * How many submitted attempts in a row, most recent first, were failures.
+ * An in-progress attempt (no `submittedAt`) is skipped rather than counted —
+ * it hasn't failed anything yet.
+ */
+export function consecutiveFails(attempts: Attempt[]): number {
+  let count = 0;
+  for (const a of attempts) {
+    if (!a.submittedAt) continue;
+    if (a.passed) break;
+    count++;
+  }
+  return count;
+}
+
+/** Seconds left before a retry is allowed, or 0 once the cooldown is clear. */
+export function cooldownRemaining(attempts: Attempt[]): number {
+  if (consecutiveFails(attempts) < 2) return 0;
+  const lastSubmitted = attempts.find((a) => a.submittedAt);
+  if (!lastSubmitted?.submittedAt) return 0;
+  return Math.max(0, RETRY_COOLDOWN_SECONDS - elapsedSeconds(lastSubmitted.submittedAt));
+}

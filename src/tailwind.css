@@ -31,7 +31,7 @@
   /* Same stack as --font in App.css, so a Tailwind `font-sans` and an unstyled
      paragraph cannot disagree. */
   --font-sans:
-    'Noto Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
   --color-brand: #09b34f; /* primary action, active state, progress fill */
   --color-brand-deep: #045023; /* dark card background, high-emphasis brand text */

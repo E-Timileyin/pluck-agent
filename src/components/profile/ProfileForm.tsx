@@ -1,9 +1,9 @@
-import { FiLock } from 'react-icons/fi';
-import { Card } from '../common/Card';
-import { Button } from '../common/Button';
-import { Field, INPUT } from '../common/Field';
-import type { Promoter } from '../../db/schema';
-import { formatPhone } from '../../lib/phone';
+import { FiLock } from "react-icons/fi";
+import { Card } from "../common/Card";
+import { Button } from "../common/Button";
+import { Field, INPUT } from "../common/Field";
+import type { Promoter } from "../../db/schema";
+import { formatPhone } from "../../lib/phone";
 
 /**
  * Name and email are the sales agent's to correct.
@@ -26,8 +26,23 @@ export function ProfileForm(props: {
   const locked = `${INPUT} flex items-center justify-between gap-3 bg-brand-tint`;
 
   return (
-    <Card title="Your details" sub="Correct anything that is wrong — it appears on your result.">
+    <Card
+      title="Your details"
+      sub="Correct anything that is wrong it appears on your result."
+    >
       <form method="post" action="/profile" class="grid gap-5">
+        <Field
+          label="Sales Agent ID"
+          hint="Assigned by your supervisor's app — not yours to change here."
+        >
+          <span class={locked}>
+            {promoter.agentId}
+            <span class="shrink-0 text-muted" aria-hidden="true">
+              <FiLock size={16} />
+            </span>
+          </span>
+        </Field>
+
         <Field label="Full name" error={errors.name}>
           <input
             class={INPUT}
@@ -58,7 +73,7 @@ export function ProfileForm(props: {
             name="email"
             type="email"
             autocomplete="email"
-            value={values.email ?? promoter.email ?? ''}
+            value={values.email ?? promoter.email ?? ""}
           />
         </Field>
 

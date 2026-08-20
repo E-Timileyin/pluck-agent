@@ -1,9 +1,9 @@
-import { FiAward, FiCalendar, FiLogOut, FiRepeat } from 'react-icons/fi';
-import { Card } from '../common/Card';
-import { Avatar } from '../common/Avatar';
-import { StatusPill } from '../common/StatusPill';
-import type { Attempt, Promoter } from '../../db/schema';
-import { formatDate } from '../../lib/format';
+import { FiAward, FiCalendar, FiLogOut, FiRepeat } from "react-icons/fi";
+import { Card } from "../common/Card";
+import { Avatar } from "../common/Avatar";
+import { StatusPill } from "../common/StatusPill";
+import type { Attempt, Promoter } from "../../db/schema";
+import { formatDate } from "../../lib/format";
 
 /**
  * The read-only half of the profile: what the record says about this promoter,
@@ -19,16 +19,24 @@ export function AccountSummary(props: {
   const passed = submitted.some((a) => a.passed);
 
   const rows = [
-    { Icon: FiCalendar, label: 'Member since', value: formatDate(props.promoter.createdAt) },
+    {
+      Icon: FiCalendar,
+      label: "Member since",
+      value: formatDate(props.promoter.createdAt),
+    },
     {
       Icon: FiRepeat,
-      label: 'Attempts',
+      label: "Attempts",
       value: `${props.attempts.length} (${submitted.length} submitted)`,
     },
     {
       Icon: FiAward,
-      label: 'Certification',
-      value: passed ? 'Passed' : submitted.length > 0 ? 'Not passed yet' : 'Not attempted',
+      label: "Certification",
+      value: passed
+        ? "Passed"
+        : submitted.length > 0
+          ? "Not passed yet"
+          : "Not attempted",
     },
   ];
 
@@ -39,10 +47,12 @@ export function AccountSummary(props: {
           <Avatar name={props.promoter.name} src={props.photoHref} size={48} />
 
           <span class="min-w-0">
-            <span class="block truncate text-[15px] font-semibold text-ink">
+            <span class="block truncate text-[15px] font-medium text-ink">
               {props.promoter.name}
             </span>
-            <span class="block text-[13px] text-muted">{props.promoter.tier} Sales Agent</span>
+            <span class="block text-[13px] text-muted">
+              {props.promoter.tier} Sales Agent
+            </span>
           </span>
           {passed ? <StatusPill tone="pass">Certified</StatusPill> : null}
         </div>
@@ -59,10 +69,13 @@ export function AccountSummary(props: {
         </dl>
       </Card>
 
-      <Card title="Sign out" sub="Ends this session on this phone. Your answers stay saved.">
-        <form method="post" action="/restart">
+      <Card
+        title="Sign out"
+        sub="Ends this session on this phone. Your answers stay saved."
+      >
+        <form method="post" action="/logout">
           <button
-            class="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-line bg-white text-sm font-semibold text-ink transition-colors duration-150 hover:border-miss hover:text-miss"
+            class="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-line bg-muted/60 text-sm font-medium text-red-500 transition-colors duration-150 hover:border-miss hover:text-miss"
             type="submit"
           >
             <FiLogOut size={18} />

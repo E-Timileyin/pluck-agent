@@ -25,7 +25,7 @@ export function MaterialCard(props: { module: Module }) {
 
         <div class="min-w-0 flex-1">
           <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
-            <h3 class="m-0 text-base font-semibold text-ink">{module.title}</h3>
+            <h3 class="m-0 text-lg font-medium text-ink lg:text-base">{module.title}</h3>
             <StatusPill tone={module.state === 'completed' ? 'pass' : 'neutral'}>
               {module.state === 'completed'
                 ? 'Completed'
@@ -37,20 +37,20 @@ export function MaterialCard(props: { module: Module }) {
             </StatusPill>
           </div>
 
-          <p class="m-0 text-sm/[1.6] text-muted">
+          <p class="m-0 text-[15px]/[1.6] text-muted lg:text-sm/[1.6]">
             {unavailable
               ? 'Your supervisor still has to publish this one. The other format may already be there.'
               : module.blurb}
           </p>
 
           {module.mode === 'video' && !unavailable ? (
-            <p class="m-0 mt-2 text-[13px] text-muted">Uses about 60 MB of data.</p>
+            <p class="m-0 mt-2 text-sm text-muted lg:text-[13px]">Uses about 60 MB of data.</p>
           ) : null}
 
           <form method="post" action="/learn/mode" class="mt-4">
             <input type="hidden" name="mode" value={module.mode} />
             <button
-              class="inline-flex min-h-12 cursor-pointer items-center gap-2 rounded-xl bg-brand px-5 text-[15px] font-semibold text-white transition-colors duration-150 hover:bg-brand-deep disabled:cursor-not-allowed disabled:bg-line disabled:text-muted"
+              class="inline-flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-0 bg-brand px-5 text-base font-medium text-white transition-colors duration-150 hover:bg-brand-deep disabled:cursor-not-allowed disabled:bg-line disabled:text-muted lg:w-auto lg:text-[15px]"
               type="submit"
               disabled={unavailable}
             >
