@@ -4,6 +4,11 @@ compatibility_date = "2025-01-01"
 
 assets = { directory = "./public" }
 
+routes = [
+  { pattern = "pluck-agent.craftbytimi.me", custom_domain = true }
+]
+workers_dev = true
+
 # react-icons is built against React; this app renders with hono/jsx. The shim
 # re-exports hono/jsx with the one API react-icons needs that it lacks
 # (Context.Consumer), so the icons server-render like any other component.
@@ -24,7 +29,7 @@ database_name = "pluck-training"
 # Create with:  npx wrangler d1 create pluck-training --location weur
 # then paste the printed id here. The location hint matters: the default may
 # place the primary in North America, and every write from Lagos pays for it.
-database_id = "REPLACE_WITH_DATABASE_ID"
+database_id = "0db61d71-55af-4b54-b297-b68748a140a3"
 migrations_dir = "migrations"
 
 [[r2_buckets]]
@@ -44,4 +49,4 @@ bucket_name = "pluck-training-media"
 # Optional. When unset, CSRF falls back to the request's own host, which is
 # correct for both `wrangler dev` and *.workers.dev. Set it once you have a
 # custom domain.
-# ALLOWED_ORIGIN = "https://training.pluck.example"
+ALLOWED_ORIGIN = "https://pluck-agent.craftbytimi.me"
