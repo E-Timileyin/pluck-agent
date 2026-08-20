@@ -1,5 +1,5 @@
-import { createMiddleware } from 'hono/factory';
-import type { AgentEnv } from '../types';
+import { createMiddleware } from "hono/factory";
+import type { AgentEnv } from "../types";
 import {
   createAttempt,
   getAttempt,
@@ -7,28 +7,18 @@ import {
   listAttemptsForPromoter,
   upsertPromoter,
   type Db,
-} from '../db/queries';
-import { getAttemptId, setAttemptCookie } from '../lib/session';
+} from "../db/queries";
+import { getAttemptId, setAttemptCookie } from "../lib/session";
 
-/**
- * DEMO BUILD — the guard no longer turns anyone away.
- *
- * It used to redirect to `/` whenever the signed attempt cookie was missing.
- * That check is gone so every promoter screen can be opened cold; the pages
- * behind it all read `c.get('attempt')`, so instead of blocking we fall back to
- * a single shared demo attempt.
- *
- * To restore: drop `demoAttempt`, and redirect on a missing or unknown id.
- */
-
-/** The number the comp shows. Fixed, so the demo reuses one row not thousands. */
-const DEMO_PHONE = '+2348012345678';
+const DEMO_PHONE = "+2348012345678";
+const DEMO_AGENT_ID = "DEMO0001";
 
 async function demoAttempt(db: Db) {
   const promoter = await upsertPromoter(db, {
-    name: 'Emeka Okafor',
+    agentId: DEMO_AGENT_ID,
+    name: "Emeka Okafor",
     phone: DEMO_PHONE,
-    tier: 'SP3',
+    tier: "SP3",
     email: null,
   });
 
@@ -45,11 +35,13 @@ export const attemptGuard = createMiddleware<AgentEnv>(async (c, next) => {
   const db = getDb(c.env.DB);
   const attemptId = await getAttemptId(c);
 
-  const attempt = (attemptId ? await getAttempt(db, attemptId) : undefined) ?? (await demoAttempt(db));
+  const attempt =
+    (attemptId ? await getAttempt(db, attemptId) : undefined) ??
+    (await demoAttempt(db));
 
   // Re-stamp the cookie so the rest of the visit stays on this same attempt.
   if (attempt.id !== attemptId) await setAttemptCookie(c, attempt.id);
 
-  c.set('attempt', attempt);
+  c.set("attempt", attempt);
   await next();
 });

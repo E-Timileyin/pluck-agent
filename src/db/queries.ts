@@ -4,9 +4,19 @@
  * That rule keeps SQL out of route handlers and makes a future D1 → Postgres
  * swap a single-file job.
  */
-import { drizzle, type DrizzleD1Database } from 'drizzle-orm/d1';
-import { and, asc, desc, eq, inArray, isNotNull, isNull, like, sql } from 'drizzle-orm';
-import * as schema from './schema';
+import { drizzle, type DrizzleD1Database } from "drizzle-orm/d1";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  like,
+  sql,
+} from "drizzle-orm";
+import * as schema from "./schema";
 import {
   admins,
   answers,
@@ -15,7 +25,7 @@ import {
   promoters,
   questions,
   settings,
-} from './schema';
+} from "./schema";
 import type {
   Admin,
   Answer,
@@ -27,8 +37,8 @@ import type {
   Settings,
   Tier,
   TutorialMode,
-} from './schema';
-import { computeResult } from '../lib/scoring';
+} from "./schema";
+import { computeResult } from "../lib/scoring";
 
 export type Db = DrizzleD1Database<typeof schema>;
 
@@ -42,8 +52,15 @@ const id = () => crypto.randomUUID();
 /* -------------------------------------------------------------------- admins */
 
 /** Email is the admin's identity column, stored lower-cased so it matches. */
-export function getAdminByEmail(db: Db, email: string): Promise<Admin | undefined> {
-  return db.select().from(admins).where(eq(admins.email, email.trim().toLowerCase())).get();
+export function getAdminByEmail(
+  db: Db,
+  email: string,
+): Promise<Admin | undefined> {
+  return db
+    .select()
+    .from(admins)
+    .where(eq(admins.email, email.trim().toLowerCase()))
+    .get();
 }
 
 export function getAdmin(db: Db, adminId: string): Promise<Admin | undefined> {
@@ -55,14 +72,17 @@ export function listAdmins(db: Db): Promise<Admin[]> {
 }
 
 export async function countAdmins(db: Db): Promise<number> {
-  const row = await db.select({ n: sql<number>`COUNT(*)` }).from(admins).get();
+  const row = await db
+    .select({ n: sql<number>`COUNT(*)` })
+    .from(admins)
+    .get();
   return Number(row?.n ?? 0);
 }
 
 /** Takes an already-hashed password — this layer never sees a plain one. */
 export async function createAdmin(
   db: Db,
-  input: { name: string; email: string; passwordHash: string },
+  input: { name: string; email: string; passwordHash: string; isSuperAdmin?: boolean },
 ): Promise<Admin> {
   const rows = await db
     .insert(admins)
@@ -71,6 +91,7 @@ export async function createAdmin(
       name: input.name,
       email: input.email.trim().toLowerCase(),
       passwordHash: input.passwordHash,
+      isSuperAdmin: input.isSuperAdmin ?? false,
       createdAt: now(),
     })
     .returning();
@@ -79,7 +100,10 @@ export async function createAdmin(
 
 /** The audit trail, such as it is: who was here and when. */
 export async function touchAdminLogin(db: Db, adminId: string): Promise<void> {
-  await db.update(admins).set({ lastLoginAt: now() }).where(eq(admins.id, adminId));
+  await db
+    .update(admins)
+    .set({ lastLoginAt: now() })
+    .where(eq(admins.id, adminId));
 }
 
 /* ------------------------------------------------------------------ settings */
@@ -87,12 +111,13 @@ export async function touchAdminLogin(db: Db, adminId: string): Promise<void> {
 const SETTINGS_DEFAULTS: Settings = {
   id: 1,
   videoUrl: null,
+  videoKey: null,
   slidesUrl: null,
   minTutorialSeconds: 45,
   passMark: 80,
   supportPhone: null,
   supportEmail: null,
-  updatedAt: '',
+  updatedAt: "",
 };
 
 export async function getSettings(db: Db): Promise<Settings> {
@@ -102,7 +127,7 @@ export async function getSettings(db: Db): Promise<Settings> {
 
 export async function updateSettings(
   db: Db,
-  values: Partial<Omit<Settings, 'id' | 'updatedAt'>>,
+  values: Partial<Omit<Settings, "id" | "updatedAt">>,
 ): Promise<void> {
   const current = await getSettings(db);
   const next = { ...current, ...values, id: 1, updatedAt: now() };
@@ -114,13 +139,21 @@ export async function updateSettings(
 
 /* ----------------------------------------------------------------- questions */
 
-export function listQuestions(db: Db, opts: { activeOnly?: boolean } = {}): Promise<Question[]> {
+export function listQuestions(
+  db: Db,
+  opts: { activeOnly?: boolean } = {},
+): Promise<Question[]> {
   const base = db.select().from(questions);
-  const filtered = opts.activeOnly ? base.where(eq(questions.isActive, true)) : base;
+  const filtered = opts.activeOnly
+    ? base.where(eq(questions.isActive, true))
+    : base;
   return filtered.orderBy(asc(questions.orderIndex), asc(questions.id)).all();
 }
 
-export function getQuestion(db: Db, questionId: string): Promise<Question | undefined> {
+export function getQuestion(
+  db: Db,
+  questionId: string,
+): Promise<Question | undefined> {
   return db.select().from(questions).where(eq(questions.id, questionId)).get();
 }
 
@@ -172,7 +205,9 @@ export async function createQuestions(
 ): Promise<number> {
   if (inputs.length === 0) return 0;
   const stamp = now();
-  await db.insert(questions).values(inputs.map((input) => ({ id: id(), createdAt: stamp, ...input })));
+  await db
+    .insert(questions)
+    .values(inputs.map((input) => ({ id: id(), createdAt: stamp, ...input })));
   return inputs.length;
 }
 
@@ -182,11 +217,17 @@ export async function createQuestions(
  * it, and the whole point of the snapshot is that past results stay readable.
  */
 export async function deactivateAllQuestions(db: Db): Promise<void> {
-  await db.update(questions).set({ isActive: false }).where(eq(questions.isActive, true));
+  await db
+    .update(questions)
+    .set({ isActive: false })
+    .where(eq(questions.isActive, true));
 }
 
 /** Deactivate, never delete — deleting orphans historical answers. */
-export async function toggleQuestion(db: Db, questionId: string): Promise<void> {
+export async function toggleQuestion(
+  db: Db,
+  questionId: string,
+): Promise<void> {
   await db
     .update(questions)
     .set({ isActive: sql`NOT ${questions.isActive}` })
@@ -206,21 +247,56 @@ export async function nextOrderIndex(db: Db): Promise<number> {
 /** Same phone twice = same promoter, new attempt. Not an error. */
 export async function upsertPromoter(
   db: Db,
-  input: { name: string; phone: string; tier: Tier; email: string | null },
+  input: { agentId: string; name: string; phone: string; tier: Tier; email: string | null },
 ): Promise<Promoter> {
   const rows = await db
     .insert(promoters)
     .values({ id: id(), createdAt: now(), ...input })
     .onConflictDoUpdate({
       target: promoters.phone,
-      set: { name: input.name, tier: input.tier, email: input.email },
+      set: { agentId: input.agentId, name: input.name, tier: input.tier, email: input.email },
     })
     .returning();
   return rows[0]!;
 }
 
-export function getPromoter(db: Db, promoterId: string): Promise<Promoter | undefined> {
+export function getPromoter(
+  db: Db,
+  promoterId: string,
+): Promise<Promoter | undefined> {
   return db.select().from(promoters).where(eq(promoters.id, promoterId)).get();
+}
+
+/** Sign-in looks a promoter up by their Sales Agent ID, then checks phone and email match. */
+export function getPromoterByAgentId(
+  db: Db,
+  agentId: string,
+): Promise<Promoter | undefined> {
+  return db.select().from(promoters).where(eq(promoters.agentId, agentId)).get();
+}
+
+/**
+ * The roster import, one row at a time: each row can update different fields
+ * on conflict, so a single batched INSERT can't express it the way
+ * `createQuestions` does for all-new rows. A sales agent's ID is the key —
+ * re-importing the same roster with a corrected phone or email updates the
+ * existing row rather than creating a second one.
+ */
+export async function importAgents(
+  db: Db,
+  rows: { agentId: string; name: string; phone: string; email: string }[],
+): Promise<number> {
+  const stamp = now();
+  for (const row of rows) {
+    await db
+      .insert(promoters)
+      .values({ id: id(), createdAt: stamp, tier: 'SP3', ...row })
+      .onConflictDoUpdate({
+        target: promoters.agentId,
+        set: { name: row.name, phone: row.phone, email: row.email },
+      });
+  }
+  return rows.length;
 }
 
 /**
@@ -249,14 +325,22 @@ export async function setPromoterPhoto(
 ): Promise<void> {
   await db
     .insert(promoterPhotos)
-    .values({ promoterId, mime: input.mime, data: input.data, updatedAt: now() })
+    .values({
+      promoterId,
+      mime: input.mime,
+      data: input.data,
+      updatedAt: now(),
+    })
     .onConflictDoUpdate({
       target: promoterPhotos.promoterId,
       set: { mime: input.mime, data: input.data, updatedAt: now() },
     });
 }
 
-export function getPromoterPhoto(db: Db, promoterId: string): Promise<PromoterPhoto | undefined> {
+export function getPromoterPhoto(
+  db: Db,
+  promoterId: string,
+): Promise<PromoterPhoto | undefined> {
   return db
     .select()
     .from(promoterPhotos)
@@ -264,15 +348,23 @@ export function getPromoterPhoto(db: Db, promoterId: string): Promise<PromoterPh
     .get();
 }
 
-export async function deletePromoterPhoto(db: Db, promoterId: string): Promise<void> {
-  await db.delete(promoterPhotos).where(eq(promoterPhotos.promoterId, promoterId));
+export async function deletePromoterPhoto(
+  db: Db,
+  promoterId: string,
+): Promise<void> {
+  await db
+    .delete(promoterPhotos)
+    .where(eq(promoterPhotos.promoterId, promoterId));
 }
 
 /**
  * Whether to render an `<img>` or initials — asked on every page load, so it
  * reads the timestamp and leaves the blob where it is.
  */
-export async function photoUpdatedAt(db: Db, promoterId: string): Promise<string | null> {
+export async function photoUpdatedAt(
+  db: Db,
+  promoterId: string,
+): Promise<string | null> {
   const row = await db
     .select({ updatedAt: promoterPhotos.updatedAt })
     .from(promoterPhotos)
@@ -282,7 +374,10 @@ export async function photoUpdatedAt(db: Db, promoterId: string): Promise<string
 }
 
 /** Same question, asked for a page full of people at once. */
-export async function photoOwners(db: Db, promoterIds: string[]): Promise<Set<string>> {
+export async function photoOwners(
+  db: Db,
+  promoterIds: string[],
+): Promise<Set<string>> {
   if (promoterIds.length === 0) return new Set();
   const rows = await db
     .select({ promoterId: promoterPhotos.promoterId })
@@ -345,7 +440,10 @@ export async function listPromoters(
 
 /* ------------------------------------------------------------------ attempts */
 
-export async function createAttempt(db: Db, promoterId: string): Promise<Attempt> {
+export async function createAttempt(
+  db: Db,
+  promoterId: string,
+): Promise<Attempt> {
   const rows = await db
     .insert(attempts)
     .values({ id: id(), promoterId, startedAt: now() })
@@ -353,7 +451,10 @@ export async function createAttempt(db: Db, promoterId: string): Promise<Attempt
   return rows[0]!;
 }
 
-export function getAttempt(db: Db, attemptId: string): Promise<Attempt | undefined> {
+export function getAttempt(
+  db: Db,
+  attemptId: string,
+): Promise<Attempt | undefined> {
   return db.select().from(attempts).where(eq(attempts.id, attemptId)).get();
 }
 
@@ -413,7 +514,12 @@ export async function recordAnswer(
   const existing = await db
     .select({ id: answers.id })
     .from(answers)
-    .where(and(eq(answers.attemptId, input.attemptId), eq(answers.questionId, input.question.id)))
+    .where(
+      and(
+        eq(answers.attemptId, input.attemptId),
+        eq(answers.questionId, input.question.id),
+      ),
+    )
     .get();
   if (existing) return; // no back navigation, and no double-scoring on a refresh
 
@@ -442,9 +548,15 @@ export async function nextUnansweredQuestion(
 ): Promise<{ question: Question | null; answered: number; total: number }> {
   const active = await listQuestions(db, { activeOnly: true });
   const answered = await listAnswers(db, attemptId);
-  const done = new Set(answered.map((a) => a.questionId).filter(Boolean) as string[]);
+  const done = new Set(
+    answered.map((a) => a.questionId).filter(Boolean) as string[],
+  );
   const question = active.find((q) => !done.has(q.id)) ?? null;
-  return { question, answered: active.filter((q) => done.has(q.id)).length, total: active.length };
+  return {
+    question,
+    answered: active.filter((q) => done.has(q.id)).length,
+    total: active.length,
+  };
 }
 
 /* -------------------------------------------------------------- finalization */
@@ -483,13 +595,13 @@ export async function attestAndFinalize(
 export type AttemptRow = { attempt: Attempt; promoter: Promoter };
 
 /** The tabs above the attempts table. `all` is the default and adds no clause. */
-export type AttemptFilter = 'all' | 'passed' | 'failed' | 'in-progress';
+export type AttemptFilter = "all" | "passed" | "failed" | "in-progress";
 
 const FILTER_CLAUSE = {
   all: undefined,
   passed: and(isNotNull(attempts.submittedAt), eq(attempts.passed, true)),
   failed: and(isNotNull(attempts.submittedAt), eq(attempts.passed, false)),
-  'in-progress': isNull(attempts.submittedAt),
+  "in-progress": isNull(attempts.submittedAt),
 } as const;
 
 /** Unpaginated by design would degrade past ~500 rows, so it takes a window. */
@@ -497,7 +609,7 @@ export function listAttempts(
   db: Db,
   limit = 100,
   offset = 0,
-  filter: AttemptFilter = 'all',
+  filter: AttemptFilter = "all",
 ): Promise<AttemptRow[]> {
   return db
     .select({ attempt: attempts, promoter: promoters })
@@ -511,11 +623,17 @@ export function listAttempts(
 }
 
 export async function countAttempts(db: Db): Promise<number> {
-  const row = await db.select({ n: sql<number>`COUNT(*)` }).from(attempts).get();
+  const row = await db
+    .select({ n: sql<number>`COUNT(*)` })
+    .from(attempts)
+    .get();
   return row?.n ?? 0;
 }
 
-export function listAttemptsForPromoter(db: Db, promoterId: string): Promise<Attempt[]> {
+export function listAttemptsForPromoter(
+  db: Db,
+  promoterId: string,
+): Promise<Attempt[]> {
   return db
     .select()
     .from(attempts)
@@ -562,9 +680,14 @@ export async function dashboardStats(db: Db): Promise<DashboardStats> {
       })
       .from(attempts)
       .get(),
-    db.select({ n: sql<number>`COUNT(DISTINCT ${attempts.promoterId})` }).from(attempts).get(),
     db
-      .select({ n: sql<number>`SUM(CASE WHEN ${attempts.passed} = 1 THEN 1 ELSE 0 END)` })
+      .select({ n: sql<number>`COUNT(DISTINCT ${attempts.promoterId})` })
+      .from(attempts)
+      .get(),
+    db
+      .select({
+        n: sql<number>`SUM(CASE WHEN ${attempts.passed} = 1 THEN 1 ELSE 0 END)`,
+      })
       .from(attempts)
       .where(sql`${attempts.submittedAt} IS NOT NULL`)
       .get(),
@@ -580,7 +703,10 @@ export async function dashboardStats(db: Db): Promise<DashboardStats> {
   // Aggregated in JS over the answer rows. Becomes a GROUP BY past a few
   // thousand rows; not worth the SQL until then.
   const answerRows = await db
-    .select({ snapshot: answers.questionSnapshot, isCorrect: answers.isCorrect })
+    .select({
+      snapshot: answers.questionSnapshot,
+      isCorrect: answers.isCorrect,
+    })
     .from(answers)
     .all();
 
@@ -592,16 +718,17 @@ export async function dashboardStats(db: Db): Promise<DashboardStats> {
     if (!row.isCorrect) entry.missed += 1;
     tally.set(prompt, entry);
   }
-  let mostMissed: DashboardStats['mostMissed'] = null;
+  let mostMissed: DashboardStats["mostMissed"] = null;
   for (const [prompt, entry] of tally) {
     if (entry.missed === 0) continue;
-    if (!mostMissed || entry.missed > mostMissed.missed) mostMissed = { prompt, ...entry };
+    if (!mostMissed || entry.missed > mostMissed.missed)
+      mostMissed = { prompt, ...entry };
   }
 
   const split = { slides: 0, video: 0, unset: 0 };
   for (const row of formats) {
-    if (row.mode === 'slides') split.slides = Number(row.n);
-    else if (row.mode === 'video') split.video = Number(row.n);
+    if (row.mode === "slides") split.slides = Number(row.n);
+    else if (row.mode === "video") split.video = Number(row.n);
     else split.unset = Number(row.n);
   }
 
@@ -609,7 +736,10 @@ export async function dashboardStats(db: Db): Promise<DashboardStats> {
     attempts: Number(totals?.attempts ?? 0),
     completed,
     uniquePromoters: Number(unique?.n ?? 0),
-    passRate: completed === 0 ? null : Math.round((Number(passes?.n ?? 0) / completed) * 100),
+    passRate:
+      completed === 0
+        ? null
+        : Math.round((Number(passes?.n ?? 0) / completed) * 100),
     mostMissed,
     formatSplit: split,
   };

@@ -4,20 +4,25 @@ import { IMPORT_TIER } from './questionFormat';
 
 const trimmed = z.string().trim();
 
-/** Phone is the identifier, not email — see flow.md §1. */
+/**
+ * Sign-in, not self-registration: Sales Agent ID + phone + email must match a
+ * roster row an admin imported from the main app — see docs/flow.md §1.
+ */
 export const startSchema = z.object({
-  name: trimmed.min(2, 'Enter your full name.').max(80, 'Name is too long.'),
+  agentId: trimmed
+    .min(1, 'Enter your Sales Agent ID.')
+    .max(40, 'That Sales Agent ID is too long.')
+    .transform((value) => value.toUpperCase()),
   phone: trimmed
     .min(1, 'Enter your phone number.')
     .transform((value) => normalizePhone(value))
     .refine((value): value is string => value !== null, {
       message: 'That does not look like a Nigerian number. Try 08012345678.',
     }),
-  tier: z.enum(['SP1', 'SP2', 'SP3']).default('SP3'),
-  email: z
-    .union([z.literal(''), trimmed.email('That email address is not valid.')])
-    .optional()
-    .transform((value) => (value ? value : null)),
+  email: trimmed
+    .min(1, 'Enter your email address.')
+    .email('That email address is not valid.')
+    .transform((value) => value.toLowerCase()),
 });
 
 export const modeSchema = z.object({
@@ -177,8 +182,6 @@ export function importErrors(error: z.ZodError): string[] {
 }
 
 export const settingsSchema = z.object({
-  videoUrl: trimmed.optional().default(''),
-  slidesUrl: trimmed.optional().default(''),
   passMark: z.coerce.number().int().min(1).max(100),
   minTutorialSeconds: z.coerce.number().int().min(0).max(3600),
   // Normalized in the handler, alongside the Drive links, so both kinds of
@@ -189,6 +192,51 @@ export const settingsSchema = z.object({
     .optional()
     .default(''),
 });
+
+/* --------------------------------------------------------- sales agent roster */
+
+/**
+ * One sales agent — a row of the imported roster, or a single agent added by
+ * hand. `agentId` is uppercased to match `startSchema`, so an admin typing
+ * "sag392585" and an agent typing "SAG392585" resolve to the same row.
+ */
+export const agentSchema = z.object({
+  agentId: trimmed
+    .min(1, 'Enter their Sales Agent ID.')
+    .max(40, 'Sales Agent ID is too long.')
+    .transform((value) => value.toUpperCase()),
+  name: trimmed.min(2, 'Enter their name.').max(80, 'Name is too long.'),
+  email: trimmed
+    .min(1, 'Enter their email address.')
+    .email('That email address is not valid.')
+    .transform((value) => value.toLowerCase()),
+  phone: trimmed
+    .min(1, 'Enter their phone number.')
+    .transform((value) => normalizePhone(value))
+    .refine((value): value is string => value !== null, {
+      message: 'That does not look like a Nigerian number. Try 08012345678.',
+    }),
+});
+
+export const agentImportSchema = z.object({
+  agents: z
+    .array(agentSchema)
+    .min(1, 'The pasted text has no agent rows in it.')
+    .max(2000, 'Two thousand rows at most in one import.'),
+});
+
+export type AgentInput = z.infer<typeof agentSchema>;
+
+/** Row numbers count the header row, so an admin can find the line in the sheet. */
+export function agentImportErrors(error: z.ZodError): string[] {
+  return error.issues.slice(0, 8).map((issue) => {
+    const [head, index, field] = issue.path;
+    if (head === 'agents' && typeof index === 'number') {
+      return `Row ${index + 2}${field ? ` (${String(field)})` : ''}: ${issue.message}`;
+    }
+    return issue.message;
+  });
+}
 
 export type StartInput = z.infer<typeof startSchema>;
 export type QuestionInput = z.infer<typeof questionSchema>;
