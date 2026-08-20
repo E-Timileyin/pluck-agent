@@ -32,16 +32,16 @@ export function Layout({ title, steps, variant = 'agent', script, children }: La
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <meta name="color-scheme" content="light" />
           <title>{title} — Pluck Sales Agent Training</title>
-          <link rel="icon" href="/logo.png" />
+          <link rel="icon" href="/favicon.ico" />
 
-          {/* Noto Sans, variable. Preconnected because these screens are read on
+          {/* DM Sans, variable. Preconnected because these screens are read on
               Nigerian mobile data, where a second round trip is felt. The stack
               in App.css falls back to the system font if it never arrives. */}
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
           <link
             rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap"
+            href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,100..1000;1,100..1000&display=swap"
           />
 
           <link rel="stylesheet" href="/styles.css" />
