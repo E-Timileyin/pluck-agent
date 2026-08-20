@@ -3,18 +3,20 @@
  *
  * Workers have no bcrypt/argon2 — there is no native module to load — so this
  * is PBKDF2-SHA256 over WebCrypto, which is available at the edge and is what
- * Cloudflare's own guidance points at. 210,000 iterations is OWASP's 2023
- * figure for PBKDF2-HMAC-SHA256.
+ * Cloudflare's own guidance points at. 100,000 iterations is the most the
+ * Workers runtime's WebCrypto will do — it throws NotSupportedError above
+ * that, unlike Node's crypto, which is why this can pass locally under
+ * `wrangler dev` and still fail once deployed.
  *
  * The stored string carries its own parameters:
  *
- *     pbkdf2-sha256$210000$<salt base64>$<hash base64>
+ *     pbkdf2-sha256$100000$<salt base64>$<hash base64>
  *
  * so raising the iteration count later does not invalidate existing rows — an
  * old hash still verifies against the count it was written with.
  */
 const ALGO = 'pbkdf2-sha256';
-const ITERATIONS = 210_000;
+const ITERATIONS = 100_000;
 const KEY_BITS = 256;
 const SALT_BYTES = 16;
 
