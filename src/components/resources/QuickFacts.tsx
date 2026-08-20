@@ -39,9 +39,9 @@ export function QuickFacts(props: {
       <dl class="m-0 grid gap-3 sm:grid-cols-2">
         {facts.map((fact) => (
           <div class="rounded-xl border border-line p-4">
-            <dt class="text-[13px] font-medium text-muted">{fact.label}</dt>
-            <dd class="m-0 mt-1 text-xl font-bold text-ink">{fact.value}</dd>
-            <dd class="m-0 mt-1 text-[13px]/[1.5] text-muted">{fact.note}</dd>
+            <dt class="text-sm font-medium text-muted lg:text-[13px]">{fact.label}</dt>
+            <dd class="m-0 mt-1 text-2xl font-semibold text-ink lg:text-xl">{fact.value}</dd>
+            <dd class="m-0 mt-1 text-sm/[1.5] text-muted lg:text-[13px]/[1.5]">{fact.note}</dd>
           </div>
         ))}
       </dl>

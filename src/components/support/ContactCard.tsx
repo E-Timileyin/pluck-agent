@@ -40,7 +40,7 @@ export function ContactCard(props: { phone: string | null; email: string | null 
               </span>
               <span class="min-w-0">
                 <span class="block text-[13px] text-muted">Call</span>
-                <span class="block truncate text-[15px] font-semibold text-ink">
+                <span class="block truncate text-[15px] font-medium text-ink">
                   {formatPhone(props.phone)}
                 </span>
               </span>
@@ -60,7 +60,7 @@ export function ContactCard(props: { phone: string | null; email: string | null 
               </span>
               <span class="min-w-0">
                 <span class="block text-[13px] text-muted">Email</span>
-                <span class="block truncate text-[15px] font-semibold text-ink">{props.email}</span>
+                <span class="block truncate text-[15px] font-medium text-ink">{props.email}</span>
               </span>
             </a>
           ) : null}

@@ -1,4 +1,4 @@
-import { FiArrowRight } from 'react-icons/fi';
+import { FiArrowRight, FiAward } from 'react-icons/fi';
 import { Button } from '../common/Button';
 import { StatusPill } from '../common/StatusPill';
 import { percentOf } from './ResultsOverview';
@@ -21,7 +21,7 @@ export function AttemptCard(props: { attempt: Attempt; number: number; resumeHre
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="min-w-0">
           <div class="mb-1 flex flex-wrap items-center gap-2">
-            <h3 class="m-0 text-sm font-semibold text-ink">Attempt {props.number}</h3>
+            <h3 class="m-0 text-[15px] font-medium text-ink lg:text-sm">Attempt {props.number}</h3>
             {submitted ? (
               <StatusPill tone={attempt.passed ? 'pass' : 'miss'}>
                 {attempt.passed ? 'Passed' : 'Not passed'}
@@ -31,7 +31,7 @@ export function AttemptCard(props: { attempt: Attempt; number: number; resumeHre
             )}
           </div>
 
-          <p class="m-0 text-[13px] text-muted">
+          <p class="m-0 text-sm text-muted lg:text-[13px]">
             Started {formatDate(attempt.startedAt)}
             {submitted ? ` · submitted ${formatDate(attempt.submittedAt!)}` : ''}
           </p>
@@ -40,11 +40,18 @@ export function AttemptCard(props: { attempt: Attempt; number: number; resumeHre
         <div class="flex shrink-0 items-center gap-4">
           {submitted ? (
             <p class="m-0 text-right">
-              <span class="block text-xl leading-none font-bold text-ink">{percent}%</span>
-              <span class="mt-0.5 block text-[11px] text-muted">
+              <span class="block text-2xl leading-none font-semibold text-ink lg:text-xl">{percent}%</span>
+              <span class="mt-0.5 block text-xs text-muted lg:text-[11px]">
                 {attempt.score}/{attempt.total} correct
               </span>
             </p>
+          ) : null}
+
+          {submitted && attempt.passed ? (
+            <Button href={`/results/${attempt.id}/certificate`} tone="quiet" small>
+              <FiAward size={16} />
+              Certificate
+            </Button>
           ) : null}
 
           <Button

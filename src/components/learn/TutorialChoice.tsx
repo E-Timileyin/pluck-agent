@@ -1,13 +1,5 @@
 import { FiFileText, FiPlayCircle } from 'react-icons/fi';
 
-/**
- * The poster state inside the player frame: nothing is chosen yet, so the frame
- * asks rather than showing black.
- *
- * Slides first, video second, and the video labelled with its data cost — on a
- * personal Nigerian mobile bundle that label is the difference between finishing
- * the training and abandoning it.
- */
 export function TutorialChoice(props: { slidesUrl: string | null; videoUrl: string | null }) {
   const none = !props.slidesUrl && !props.videoUrl;
 
@@ -20,7 +12,7 @@ export function TutorialChoice(props: { slidesUrl: string | null; videoUrl: stri
         </p>
       ) : (
         <>
-          <p class="m-0 text-lg font-semibold text-white">Choose how you want to learn</p>
+          <p class="m-0 text-lg font-medium text-white">Choose how you want to learn</p>
           <p class="m-0 max-w-[38ch] text-sm text-white/70">
             You can switch at any time — the timer keeps running either way.
           </p>
@@ -30,7 +22,7 @@ export function TutorialChoice(props: { slidesUrl: string | null; videoUrl: stri
               <form method="post" action="/learn/mode">
                 <input type="hidden" name="mode" value="slides" />
                 <button
-                  class="flex min-h-12 cursor-pointer items-center gap-2.5 rounded-xl border-0 bg-white px-5 text-[15px] font-semibold text-brand-deep"
+                  class="flex min-h-12 cursor-pointer items-center gap-2.5 rounded-xl border-0 bg-white px-5 text-[15px] font-medium text-brand-deep"
                   type="submit"
                 >
                   <FiFileText size={20} />
@@ -44,7 +36,7 @@ export function TutorialChoice(props: { slidesUrl: string | null; videoUrl: stri
               <form method="post" action="/learn/mode">
                 <input type="hidden" name="mode" value="video" />
                 <button
-                  class="flex min-h-12 cursor-pointer items-center gap-2.5 rounded-xl border border-white/40 bg-white/10 px-5 text-[15px] font-semibold text-white"
+                  class="flex min-h-12 cursor-pointer items-center gap-2.5 rounded-xl border border-white/40 bg-white/10 px-5 text-[15px] font-medium text-white"
                   type="submit"
                 >
                   <FiPlayCircle size={20} />

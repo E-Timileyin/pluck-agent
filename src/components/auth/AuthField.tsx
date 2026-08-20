@@ -17,7 +17,7 @@ export function AuthField(props: {
 
   return (
     <Tag class="block">
-      <span class="mb-1.5 block text-sm font-semibold text-ink">
+      <span class="mb-1.5 block text-sm font-medium text-ink">
         {props.label}
         {props.optional ? <span class="font-normal text-muted"> (optional)</span> : null}
       </span>
@@ -28,7 +28,7 @@ export function AuthField(props: {
         <span class="mt-1.5 block text-[13px]/[1.5] text-muted">{props.hint}</span>
       ) : null}
       {props.error ? (
-        <span class="mt-1.5 block text-[13px] font-semibold text-miss">{props.error}</span>
+        <span class="mt-1.5 block text-[13px] font-medium text-miss">{props.error}</span>
       ) : null}
     </Tag>
   );

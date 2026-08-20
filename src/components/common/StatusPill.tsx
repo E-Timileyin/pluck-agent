@@ -18,7 +18,7 @@ const TONE: Record<PillTone, string> = {
 export function StatusPill(props: { tone?: PillTone; children?: string }) {
   return (
     <span
-      class={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${
+      class={`inline-block rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap ${
         TONE[props.tone ?? 'neutral']
       }`}
     >

@@ -25,7 +25,7 @@ export function StatTile(props: {
         </span>
       </div>
 
-      <p class="m-0 text-[28px] leading-none font-bold text-ink">{props.value}</p>
+      <p class="m-0 text-[28px] leading-none font-semibold text-ink">{props.value}</p>
 
       {props.percent === undefined ? null : (
         <span class="mt-3 block h-2 overflow-hidden rounded-full bg-line">

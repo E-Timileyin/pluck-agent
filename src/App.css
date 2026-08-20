@@ -26,9 +26,9 @@
   --shell: 34rem;
   --transition: 150ms ease;
 
-  /* Noto Sans is loaded in the document head; the rest is the fallback stack
+  /* DM Sans is loaded in the document head; the rest is the fallback stack
      for a phone that never gets it. */
-  --font: 'Noto Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+  --font: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
     sans-serif;
 }
 
@@ -45,10 +45,9 @@ html {
 body {
   margin: 0;
   font-family: var(--font);
-  /* Noto Sans is variable on both axes — let the browser pick the optical size
-     and pin the width, or headings render at whatever the last axis was. */
+  /* DM Sans is variable on weight and optical size — let the browser pick
+     the optical size rather than pinning it to whatever axis was last set. */
   font-optical-sizing: auto;
-  font-variation-settings: 'wdth' 100;
   font-size: 17px; /* nothing below 16px — these are outdoor screens in daylight */
   line-height: 1.5;
   color: var(--ink);

@@ -26,7 +26,7 @@ export function StepRail(props: { steps: Step[] }) {
             ) : null}
 
             <span
-              class={`relative z-10 flex size-10 items-center justify-center rounded-full text-[15px] font-semibold ${
+              class={`relative z-10 flex size-10 items-center justify-center rounded-full text-[15px] font-medium ${
                 step.state === 'done'
                   ? 'bg-brand text-white'
                   : step.state === 'current'
@@ -39,7 +39,7 @@ export function StepRail(props: { steps: Step[] }) {
 
             <span
               class={`mt-2 text-center text-[11px] leading-tight lg:text-[13px] ${
-                step.state === 'current' ? 'font-semibold text-ink' : 'font-medium text-muted'
+                step.state === 'current' ? 'font-medium text-ink' : 'font-medium text-muted'
               }`}
             >
               {step.label}

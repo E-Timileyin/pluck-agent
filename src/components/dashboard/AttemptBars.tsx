@@ -39,7 +39,7 @@ export function AttemptBars(props: { bars: Bar[]; passMark: number }) {
           <ol class="m-0 flex h-40 list-none items-end gap-3 p-0">
             {props.bars.map((bar) => (
               <li class="flex min-w-0 flex-1 flex-col items-center gap-2">
-                <span class="text-[13px] font-semibold text-ink">{Math.round(bar.percent)}%</span>
+                <span class="text-[13px] font-medium text-ink">{Math.round(bar.percent)}%</span>
                 <span
                   class={`w-full rounded-t-xl ${
                     bar.passed === null

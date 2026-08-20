@@ -1,12 +1,13 @@
 import { PromoterShell } from '../../components/common/PromoterShell';
 import { Alert } from '../../components/common/Alert';
+import { Button } from '../../components/common/Button';
 import { ScoreVerdict } from '../../components/quiz/ScoreVerdict';
 import { AnswerReview } from '../../components/common/AnswerReview';
 import type { Answer, Attempt } from '../../db/schema';
 import type { Result } from '../../lib/scoring';
 import type { Shell } from '../../lib/shell';
 import { formatPhone } from '../../lib/phone';
-import { formatDate } from '../../lib/format';
+import { formatClock, formatDate } from '../../lib/format';
 
 export function ResultsPage(props: {
   shell: Shell;
@@ -14,6 +15,8 @@ export function ResultsPage(props: {
   answers: Answer[];
   result: Result;
   passMark: number;
+  /** Set when this is a second fail in a row and the retry cooldown is still running. */
+  cooldownSeconds?: number;
 }) {
   const { attempt, result } = props;
   const { promoter } = props.shell;
@@ -21,6 +24,14 @@ export function ResultsPage(props: {
   return (
     <PromoterShell title="Your result" shell={props.shell} active="results" showRail>
       <ScoreVerdict result={result} passMark={props.passMark} />
+
+      {attempt.passed ? (
+        <p class="m-0">
+          <Button href={`/results/${attempt.id}/certificate`} tone="ghost" small>
+            View certificate
+          </Button>
+        </p>
+      ) : null}
 
       {result.missedCritical.length > 0 ? (
         <Alert tone="error">
@@ -37,6 +48,13 @@ export function ResultsPage(props: {
 
       <h2>Review</h2>
       <AnswerReview answers={props.answers} />
+
+      {props.cooldownSeconds ? (
+        <Alert tone="error">
+          That's two in a row. Take {formatClock(props.cooldownSeconds)} to go back over the
+          material before the next attempt opens.
+        </Alert>
+      ) : null}
 
       <form method="post" action="/restart" class="stack">
         <button class="btn btn-ghost" type="submit">

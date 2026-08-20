@@ -1,17 +1,4 @@
-/**
- * The interchange format for authored questions, and the prompt that gets an AI
- * to produce it.
- *
- * Both live here, together, for one reason: the prompt an admin pastes into
- * Claude and the schema the importer validates against must describe the same
- * thing. Split them across two files and they drift, and the failure lands on
- * whoever is trying to upload thirty questions ten minutes before a session.
- *
- * Only SP3 is accepted today — it is the only course that exists, and every new
- * sales agent is enrolled on it. `tier` is in the format anyway so that the day
- * a second course appears, the files already say which one they are for.
- */
-export const IMPORT_TIER = 'SP3';
+export const IMPORT_TIER = "SP3";
 
 export const QUESTION_JSON_EXAMPLE = `{
   "tier": "SP3",
@@ -41,12 +28,6 @@ export const QUESTION_JSON_EXAMPLE = `{
   ]
 }`;
 
-/**
- * Written to be pasted whole into Claude (or any other assistant) along with
- * the training material. It over-specifies deliberately: "no markdown fence"
- * and "answer must be one of the options, copied exactly" are the two mistakes
- * every model makes here, and both break the import.
- */
 export const QUESTION_PROMPT = `You are writing a multiple-choice quiz for Pluck sales agents in Nigeria.
 
 Context: these are field sales agents selling smartphones, solar systems and motorcycles on credit, on SP3 (entry) tier. They read the training material on a phone, often on mobile data. The quiz decides whether they are certified to sell.

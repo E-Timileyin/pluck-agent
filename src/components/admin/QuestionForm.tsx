@@ -1,6 +1,6 @@
-import { Card } from '../common/Card';
-import { Button } from '../common/Button';
-import { Field, INPUT, TEXTAREA } from '../common/Field';
+import { Card } from "../common/Card";
+import { Button } from "../common/Button";
+import { Field, INPUT, TEXTAREA } from "../common/Field";
 
 export type QuestionFormValues = {
   prompt?: string;
@@ -33,7 +33,7 @@ export function QuestionForm(props: {
       <form method="post" action={props.action} class="grid gap-5">
         <Field label="Question" error={errors.prompt}>
           <textarea class={TEXTAREA} name="prompt" rows={3} required>
-            {values.prompt ?? ''}
+            {values.prompt ?? ""}
           </textarea>
         </Field>
 
@@ -58,7 +58,7 @@ export function QuestionForm(props: {
                   class="h-10 min-w-0 flex-1 border-0 bg-transparent px-0 text-[15px] text-ink"
                   type="text"
                   name={`option_${i}`}
-                  value={options[i] ?? ''}
+                  value={options[i] ?? ""}
                   placeholder={`Option ${i + 1}`}
                 />
               </label>
@@ -87,7 +87,8 @@ export function QuestionForm(props: {
                 checked={values.isCritical ?? false}
               />
               <span>
-                Compliance question <span class="text-muted">— must be correct to pass</span>
+                Compliance question{" "}
+                <span class="text-muted">— must be correct to pass</span>
               </span>
             </label>
 
@@ -99,7 +100,7 @@ export function QuestionForm(props: {
                 checked={values.isActive ?? true}
               />
               <span>
-                Active <span class="text-muted">— included in the quiz</span>
+                Active <span class="text-muted"> included in the quiz</span>
               </span>
             </label>
           </div>

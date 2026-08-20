@@ -27,7 +27,7 @@ export function noticesFor(args: {
 
   // An unconfigured worker is the promoter's problem before it is anyone
   // else's — they cannot start, and nothing on the screen would say why.
-  if (!settings.slidesUrl && !settings.videoUrl) {
+  if (!settings.slidesUrl && !settings.videoUrl && !settings.videoKey) {
     notices.push({
       title: 'Training material not published',
       body: 'Your supervisor still has to add the slides or the video. Nothing you have done is lost.',

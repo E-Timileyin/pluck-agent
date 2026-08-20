@@ -26,7 +26,7 @@ export function NotificationBell(props: { notices: Notice[] }) {
             <FiBell size={20} />
           </span>
           {count > 0 ? (
-            <span class="absolute -top-1 -right-1 flex size-[18px] items-center justify-center rounded-full bg-brand text-[11px] font-bold text-white">
+            <span class="absolute -top-1 -right-1 flex size-[18px] items-center justify-center rounded-full bg-brand text-[11px] font-semibold text-white">
               {count}
             </span>
           ) : null}
@@ -35,7 +35,7 @@ export function NotificationBell(props: { notices: Notice[] }) {
       </summary>
 
       <div class="absolute right-0 z-30 mt-2 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-line bg-white">
-        <p class="m-0 border-b border-line px-4 py-3 text-sm font-semibold text-ink">
+        <p class="m-0 border-b border-line px-4 py-3 text-sm font-medium text-ink">
           Notifications
         </p>
 
@@ -59,7 +59,7 @@ export function NotificationBell(props: { notices: Notice[] }) {
                       <Icon size={16} />
                     </span>
                     <span class="min-w-0">
-                      <span class="block text-sm font-semibold text-ink">{notice.title}</span>
+                      <span class="block text-sm font-medium text-ink">{notice.title}</span>
                       <span class="block text-[13px]/[1.5] text-muted">{notice.body}</span>
                     </span>
                     <span class="mt-1 shrink-0 text-muted" aria-hidden="true">

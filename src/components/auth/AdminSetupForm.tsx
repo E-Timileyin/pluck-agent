@@ -1,15 +1,8 @@
-import { AUTH_INPUT } from './AuthLayout';
-import { AuthField } from './AuthField';
-import { AuthSubmit } from './AuthSubmit';
-import { AuthError } from './AuthError';
+import { AUTH_INPUT } from "./AuthLayout";
+import { AuthField } from "./AuthField";
+import { AuthSubmit } from "./AuthSubmit";
+import { AuthError } from "./AuthError";
 
-/**
- * First run only: the console has no admins yet, so this creates the first one.
- *
- * The setup key is `ADMIN_PASSCODE` — the old shared secret, demoted to a
- * one-time bootstrap. Without it, whoever loads a fresh deployment first owns
- * the console. It is checked once here and never again.
- */
 export function AdminSetupForm(props: {
   values?: { name?: string; email?: string };
   errors?: Record<string, string>;
@@ -31,7 +24,7 @@ export function AdminSetupForm(props: {
             maxlength={80}
             required
             autofocus
-            value={props.values?.name ?? ''}
+            value={props.values?.name ?? ""}
           />
         </AuthField>
 
@@ -44,7 +37,7 @@ export function AdminSetupForm(props: {
             inputmode="email"
             placeholder="you@pluck.ng"
             required
-            value={props.values?.email ?? ''}
+            value={props.values?.email ?? ""}
           />
         </AuthField>
 

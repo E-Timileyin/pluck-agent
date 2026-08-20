@@ -1,19 +1,11 @@
-import { PromoterShell } from '../../components/common/PromoterShell';
-import { PageHeader } from '../../components/common/PageHeader';
-import { MaterialCard } from '../../components/resources/MaterialCard';
-import { ConductReference } from '../../components/resources/ConductReference';
-import { QuickFacts } from '../../components/resources/QuickFacts';
-import type { Module } from '../../lib/progress';
-import type { Shell } from '../../lib/shell';
+import { PromoterShell } from "../../components/common/PromoterShell";
+import { PageHeader } from "../../components/common/PageHeader";
+import { MaterialCard } from "../../components/resources/MaterialCard";
+import { ConductReference } from "../../components/resources/ConductReference";
+import { QuickFacts } from "../../components/resources/QuickFacts";
+import type { Module } from "../../lib/progress";
+import type { Shell } from "../../lib/shell";
 
-/**
- * Everything a sales agent might want to look up without being mid-flow: the
- * material itself, the rules they are judged by, and the conduct rules they
- * will be asked to confirm.
- *
- * Same tile grid as the dashboard — no screen on the agent side invents its own
- * layout.
- */
 export function ResourcesPage(props: {
   shell: Shell;
   modules: Module[];

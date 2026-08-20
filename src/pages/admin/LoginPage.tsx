@@ -26,7 +26,7 @@ export function LoginPage(props: {
       footer={
         <>
           Taking the training instead?{' '}
-          <a class="font-semibold text-brand no-underline hover:underline" href="/">
+          <a class="font-medium text-brand no-underline hover:underline" href="/">
             Sales agent sign-in
           </a>
         </>

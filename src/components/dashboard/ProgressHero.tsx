@@ -1,84 +1,99 @@
-import { FiArrowRight, FiBookOpen, FiFolder, FiTrendingUp } from 'react-icons/fi';
-import { Panel } from '../common/Panel';
-import { PanelHead } from '../common/PanelHead';
-import { Chip } from '../common/Chip';
-import type { Progress, Resume } from '../../lib/progress';
+import { FiTrendingUp } from "react-icons/fi";
+import { Panel } from "../common/Panel";
+import { PanelHead } from "../common/PanelHead";
+import { Chip } from "../common/Chip";
+import type { Progress } from "../../lib/progress";
 
-/**
- * The hero tile: the one number this screen exists to report, the three things
- * you can do next, and — where the comp puts a decorative bar chart — the five
- * steps drawn as blocks. Real state, in the shape the design uses for texture.
- */
-export function ProgressHero(props: { progress: Progress; resume: Resume; resumeHref: string }) {
+export function ProgressHero(props: { progress: Progress }) {
   const percent = Math.round(props.progress.percent);
-  const done = props.progress.current === 'results' && percent === 100;
+  const done = props.progress.current === "results" && percent === 100;
+  const statusText = done
+    ? "Complete"
+    : `${props.progress.answered}/${props.progress.totalQuestions} answered`;
 
   return (
-    <Panel class="h-full lg:col-span-2">
-      <PanelHead
-        Icon={FiTrendingUp}
-        title="Training progress"
-        aside={<Chip tone="quiet">{props.progress.steps.find((s) => s.state === 'current')?.label}</Chip>}
-      />
+    <>
+      {/* Mobile: the same swoosh-card language as /learn's hero — this IS
+          the progress hero already, so it gets bolder here rather than
+          having a second decorative card stacked above it. */}
+      <div class="relative h-full overflow-hidden rounded-[28px] bg-brand-deep p-5 text-white lg:hidden">
+        <svg
+          class="absolute inset-0 size-full"
+          viewBox="0 0 358 220"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M -20 150 C 70 100, 120 190, 200 140 C 270 95, 320 140, 380 105 L 380 240 L -20 240 Z"
+            fill="var(--color-brand)"
+            opacity="0.9"
+          ></path>
+          <path
+            d="M -20 175 C 80 135, 140 205, 220 160 C 290 125, 330 160, 380 135 L 380 240 L -20 240 Z"
+            fill="var(--color-brand-mint)"
+            opacity="0.25"
+          ></path>
+        </svg>
 
-      <div class="flex flex-wrap items-end justify-between gap-5">
-        <div class="min-w-0">
-          <p class="m-0 text-[34px] leading-none font-bold tracking-tight text-ink lg:text-[40px]">
-            {percent}
-            <span class="text-[20px] text-muted lg:text-[24px]">%</span>
-          </p>
-
-          <p class="m-0 mt-2 flex flex-wrap items-center gap-2 text-[13px] text-muted">
-            <Chip tone="good" Icon={FiTrendingUp}>
-              {done ? 'Complete' : `${props.progress.answered}/${props.progress.totalQuestions} answered`}
-            </Chip>
-            {done ? 'Training complete. Nice work.' : "You're doing great! Keep going."}
-          </p>
+        <div class="relative flex items-center gap-3">
+          <span
+            class="flex size-9 shrink-0 items-center justify-center rounded-full bg-white/15"
+            aria-hidden="true"
+          >
+            <FiTrendingUp size={18} />
+          </span>
+          <h2 class="m-0 text-lg font-medium">Training progress</h2>
         </div>
 
-        {/* The comp's bar-chart block, drawn from the five steps. */}
-        <ol class="m-0 flex list-none items-end gap-1.5 p-0" aria-hidden="true">
-          {props.progress.steps.map((step, i) => (
-            <li
-              class={`w-5 rounded-md ${
-                step.state === 'done'
-                  ? 'bg-brand'
-                  : step.state === 'current'
-                    ? 'bg-brand-ink'
-                    : 'bg-step-idle'
-              }`}
-              style={`height:${20 + i * 9}px`}
-            ></li>
-          ))}
-        </ol>
+        <p class="relative m-0 mt-4 text-[44px] leading-none font-bold tracking-tight">
+          {percent}
+          <span class="text-[22px] text-white/75">%</span>
+        </p>
+
+        <div class="relative mt-4 h-2 w-full overflow-hidden rounded-full bg-white/25">
+          <div
+            class="h-full rounded-full bg-white"
+            style={`width:${percent}%`}
+          ></div>
+        </div>
+
+        <p class="relative m-0 mt-4 flex flex-wrap items-center gap-2 text-sm text-white/85">
+          <span class="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-xs font-medium whitespace-nowrap">
+            <FiTrendingUp size={13} />
+            {statusText}
+          </span>
+          {done
+            ? "Training complete. Nice work."
+            : "You're doing great! Keep going."}
+        </p>
       </div>
 
-      <div class="mt-5 flex flex-wrap gap-2">
-        <a
-          class="inline-flex min-h-11 items-center gap-2 rounded-full bg-brand px-4 text-sm font-semibold text-white no-underline transition-colors duration-150 hover:bg-brand-deep"
-          href={props.resumeHref}
-        >
-          {props.resume.cta}
-          <FiArrowRight size={16} />
-        </a>
+      {/* Desktop: unchanged. */}
+      <Panel class="hidden h-full lg:col-span-2 lg:block">
+        <PanelHead Icon={FiTrendingUp} title="Training progress" />
 
-        <a
-          class="inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-4 text-sm font-semibold text-white no-underline"
-          href="/learn"
-        >
-          <FiBookOpen size={16} />
-          Training
-        </a>
+        <p class="m-0 text-[40px] leading-none font-semibold tracking-tight text-ink">
+          {percent}
+          <span class="text-[24px] text-muted">%</span>
+        </p>
 
-        <a
-          class="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-white px-4 text-sm font-semibold text-ink no-underline transition-colors duration-150 hover:border-brand hover:text-brand"
-          href="/resources"
-        >
-          <FiFolder size={16} />
-          Resources
-        </a>
-      </div>
-    </Panel>
+        <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-line">
+          <div
+            class="h-full rounded-full bg-brand"
+            style={`width:${percent}%`}
+          ></div>
+        </div>
+
+        <p class="m-0 mt-3 flex flex-wrap items-center gap-2 text-[13px] text-muted">
+          <Chip tone="good" Icon={FiTrendingUp}>
+            {statusText}
+          </Chip>
+          {done
+            ? "Training complete. Nice work."
+            : "You're doing great! Keep going."}
+        </p>
+      </Panel>
+    </>
   );
 }
 
