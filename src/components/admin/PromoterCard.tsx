@@ -1,13 +1,12 @@
-import type { IconType } from 'react-icons';
-import { FiCalendar, FiMail, FiPhone, FiTag } from 'react-icons/fi';
-import { Card } from '../common/Card';
-import { Avatar } from '../common/Avatar';
-import { StatusPill } from '../common/StatusPill';
-import type { Attempt, Promoter } from '../../db/schema';
-import { formatPhone } from '../../lib/phone';
-import { formatDate } from '../../lib/format';
+import type { IconType } from "react-icons";
+import { FiCalendar, FiMail, FiPhone, FiTag } from "react-icons/fi";
+import { Card } from "../common/Card";
+import { Avatar } from "../common/Avatar";
+import { StatusPill } from "../common/StatusPill";
+import type { Attempt, Promoter } from "../../db/schema";
+import { formatPhone } from "../../lib/phone";
+import { formatDate } from "../../lib/format";
 
-/** The identity block at the top of a promoter's page in the console. */
 export function PromoterCard(props: {
   promoter: Promoter;
   attempts: Attempt[];
@@ -24,7 +23,7 @@ export function PromoterCard(props: {
   const rows: { Icon: IconType; value: string }[] = [
     { Icon: FiPhone, value: formatPhone(promoter.phone) },
     { Icon: FiTag, value: `${promoter.tier} Sales Agent` },
-    { Icon: FiMail, value: promoter.email ?? 'No email on file' },
+    { Icon: FiMail, value: promoter.email ?? "No email on file" },
     { Icon: FiCalendar, value: `Joined ${formatDate(promoter.createdAt)}` },
   ];
 
@@ -43,9 +42,10 @@ export function PromoterCard(props: {
           />
 
           <div class="min-w-0">
-            <h2 class="m-0 text-xl font-bold text-ink">{promoter.name}</h2>
+            <h2 class="m-0 text-xl font-semibold text-ink">{promoter.name}</h2>
             <p class="m-0 text-sm text-muted">
-              {props.attempts.length} {props.attempts.length === 1 ? 'attempt' : 'attempts'} ·{' '}
+              {promoter.agentId} · {props.attempts.length}{" "}
+              {props.attempts.length === 1 ? "attempt" : "attempts"} ·{" "}
               {submitted.length} submitted
             </p>
           </div>
@@ -54,7 +54,7 @@ export function PromoterCard(props: {
         <div class="flex shrink-0 items-center gap-2">
           {submitted.length > 0 ? (
             <span class="text-sm text-muted">
-              best <span class="font-semibold text-ink">{best}%</span>
+              best <span class="font-medium text-ink">{best}%</span>
             </span>
           ) : null}
           {passed ? (

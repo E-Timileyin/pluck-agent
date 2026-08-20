@@ -1,51 +1,21 @@
+import { FiEye } from 'react-icons/fi';
 import { Card } from '../common/Card';
 import { Button } from '../common/Button';
 import { Field, INPUT } from '../common/Field';
 import type { Settings } from '../../db/schema';
-import { SLIDES_LINK_EXAMPLE, VIDEO_LINK_EXAMPLE } from '../../lib/drive';
 import { formatPhone } from '../../lib/phone';
 
 export function SettingsForm(props: {
   settings: Settings;
-  values?: { videoUrl?: string; slidesUrl?: string; supportPhone?: string; supportEmail?: string };
+  values?: { supportPhone?: string; supportEmail?: string };
   errors?: Record<string, string>;
 }) {
   const { settings } = props;
   const errors = props.errors ?? {};
 
   return (
-    <form method="post" action="/admin/settings" class="grid gap-4">
-      <Card
-        title="Training material"
-        sub="Paste the normal share link — the file ID is extracted and the embed URL is what gets stored, so /learn does no parsing at render."
-      >
-        <div class="grid gap-5">
-          <Field
-            label="Slides share link"
-            hint="Convert the PPTX to native Google Slides first — a .pptx sitting in Drive does not embed reliably. Sharing must be “anyone with the link”, and note that the deck contains commission rates and internal targets."
-            error={errors.slidesUrl}
-          >
-            <input
-              class={INPUT}
-              name="slidesUrl"
-              type="text"
-              placeholder={SLIDES_LINK_EXAMPLE}
-              value={props.values?.slidesUrl ?? settings.slidesUrl ?? ''}
-            />
-          </Field>
-
-          <Field label="Video share link" error={errors.videoUrl}>
-            <input
-              class={INPUT}
-              name="videoUrl"
-              type="text"
-              placeholder={VIDEO_LINK_EXAMPLE}
-              value={props.values?.videoUrl ?? settings.videoUrl ?? ''}
-            />
-          </Field>
-        </div>
-      </Card>
-
+    <div class="grid gap-4">
+      <form method="post" action="/admin/settings" class="contents">
       <Card
         title="The rules the quiz runs by"
         sub="Both apply from the next answer onwards. Past results keep the pass mark they were scored against."
@@ -117,7 +87,18 @@ export function SettingsForm(props: {
           <Button type="submit">Save settings</Button>
         </div>
       </Card>
-    </form>
+      </form>
+
+      <Card
+        title="Certificate"
+        sub="What a sales agent gets after passing. Preview the design with sample data — no real record needed."
+      >
+        <Button href="/admin/certificate/preview" tone="ghost">
+          <FiEye size={18} />
+          Preview certificate
+        </Button>
+      </Card>
+    </div>
   );
 }
 
