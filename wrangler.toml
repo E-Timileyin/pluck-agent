@@ -27,6 +27,14 @@ database_name = "pluck-training"
 database_id = "REPLACE_WITH_DATABASE_ID"
 migrations_dir = "migrations"
 
+[[r2_buckets]]
+binding = "TRAINING_MEDIA"
+bucket_name = "pluck-training-media"
+# Create with:  npx wrangler r2 bucket create pluck-training-media
+# Holds the training video when an admin uploads one directly from Settings
+# instead of pasting a Drive share link. No id to paste back here — R2 buckets
+# are addressed by name, not id.
+
 # Secrets (never put these in this file):
 #   npx wrangler secret put ADMIN_PASSCODE
 #   npx wrangler secret put SESSION_SECRET     # 32+ random chars

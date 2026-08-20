@@ -8,7 +8,7 @@ export function SettingsPage(props: {
   admin: Admin;
   settings: Settings;
   admins: Admin[];
-  values?: { videoUrl?: string; slidesUrl?: string; supportPhone?: string; supportEmail?: string };
+  values?: { supportPhone?: string; supportEmail?: string };
   errors?: Record<string, string>;
   teamValues?: { name?: string; email?: string };
   teamErrors?: Record<string, string>;
@@ -29,6 +29,7 @@ export function SettingsPage(props: {
         <TeamCard
           admins={props.admins}
           currentId={props.admin.id}
+          isSuperAdmin={props.admin.isSuperAdmin}
           values={props.teamValues}
           errors={props.teamErrors}
         />

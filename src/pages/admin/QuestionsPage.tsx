@@ -3,12 +3,14 @@ import { Alert } from '../../components/common/Alert';
 import { QuestionForm, type QuestionFormValues } from '../../components/admin/QuestionForm';
 import { QuestionList } from '../../components/admin/QuestionList';
 import { QuestionImport } from '../../components/admin/QuestionImport';
+import { TrainingMaterialCard } from '../../components/admin/TrainingMaterialCard';
 import { DashboardSection } from '../../components/dashboard/DashboardSection';
-import type { Admin, Question } from '../../db/schema';
+import type { Admin, Question, Settings } from '../../db/schema';
 
 export function QuestionsPage(props: {
   admin: Admin;
   questions: Question[];
+  settings: Settings;
   editing?: Question;
   values?: QuestionFormValues;
   errors?: Record<string, string>;
@@ -16,6 +18,7 @@ export function QuestionsPage(props: {
   /** A rejected import: the pasted text, kept, and why it was refused. */
   importJson?: string;
   importErrors?: string[];
+  videoError?: string;
 }) {
   const { editing } = props;
   const active = props.questions.filter((q) => q.isActive).length;
@@ -41,7 +44,9 @@ export function QuestionsPage(props: {
     >
       {props.notice ? <Alert tone="info">{props.notice}</Alert> : null}
 
-      <div id="question-form" class="scroll-mt-8">
+      <TrainingMaterialCard settings={props.settings} error={props.videoError} />
+
+      <div id="question-form" class="mt-4 scroll-mt-8">
         <QuestionForm
           title={editing ? 'Edit question' : 'Add a question'}
           sub={
@@ -57,11 +62,15 @@ export function QuestionsPage(props: {
         />
       </div>
 
-      <DashboardSection title="Bulk import">
+      <DashboardSection
+        title="Bulk import"
+        collapsible
+        defaultOpen={Boolean(props.importJson || (props.importErrors && props.importErrors.length > 0))}
+      >
         <QuestionImport json={props.importJson} errors={props.importErrors} />
       </DashboardSection>
 
-      <DashboardSection title={`All questions (${props.questions.length})`}>
+      <DashboardSection title={`All questions (${props.questions.length})`} collapsible>
         <QuestionList questions={props.questions} />
       </DashboardSection>
     </AdminShell>

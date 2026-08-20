@@ -11,11 +11,14 @@ import {
   deactivateAllQuestions,
   getAdmin,
   getAdminByEmail,
+  getAttempt,
+  getAttemptWithPromoter,
   getDb,
   getPromoter,
   getPromoterPhoto,
   getQuestion,
   getSettings,
+  importAgents,
   listAdmins,
   listAnswersForAttempts,
   listAttempts,
@@ -34,6 +37,9 @@ import {
   adminInviteSchema,
   adminLoginSchema,
   adminSetupSchema,
+  agentImportErrors,
+  agentImportSchema,
+  agentSchema,
   fieldErrors,
   importErrors,
   questionImportSchema,
@@ -41,18 +47,21 @@ import {
   rawQuestionValues,
   settingsSchema,
 } from '../lib/validators';
+import { parseAgentRoster, parseAgentRosterWorkbook } from '../lib/agentFormat';
 import { clearAdminCookie, getAdminId, secretMatches, setAdminCookie } from '../lib/session';
 import { hashPassword, verifyPassword } from '../lib/password';
-import { toSlidesEmbed, toVideoEmbed } from '../lib/drive';
 import { normalizePhone } from '../lib/phone';
+import { checkVideo, serveVideoRange, videoKeyFor } from '../lib/video';
 import { LoginPage } from '../pages/admin/LoginPage';
 import { SetupPage } from '../pages/admin/SetupPage';
 import { DashboardPage } from '../pages/admin/DashboardPage';
 import { AttemptsPage } from '../pages/admin/AttemptsPage';
 import { PromotersPage } from '../pages/admin/PromotersPage';
+import { AgentImportPage } from '../pages/admin/AgentImportPage';
 import { PromoterPage } from '../pages/admin/PromoterPage';
 import { QuestionsPage } from '../pages/admin/QuestionsPage';
 import { SettingsPage } from '../pages/admin/SettingsPage';
+import { CertificatePage } from '../pages/results/CertificatePage';
 
 const app = new Hono<AdminEnv>();
 
@@ -189,6 +198,9 @@ app.post(
       name,
       email,
       passwordHash: await hashPassword(password),
+      // The account /admin/setup creates is the only one with no invitee — it
+      // is the super admin, the one who can create every account after it.
+      isSuperAdmin: true,
     });
 
     await touchAdminLogin(db, admin.id);
@@ -237,11 +249,123 @@ app.get('/attempts', async (c) => {
 
 /* --------------------------------------------------------------- promoters */
 
-app.get('/promoters', async (c) => {
+async function promotersPage(
+  c: Context<AdminEnv>,
+  extra: Partial<Parameters<typeof PromotersPage>[0]> = {},
+) {
   const search = (c.req.query('q') ?? '').trim();
   const rows = await listPromoters(dbOf(c), { search: search || undefined });
+  const imported = c.req.query('imported');
 
-  return c.html(<PromotersPage admin={c.get('admin')} rows={rows} search={search || undefined} />);
+  return (
+    <PromotersPage
+      admin={c.get('admin')}
+      rows={rows}
+      search={search || undefined}
+      notice={
+        imported
+          ? `Imported ${imported} ${imported === '1' ? 'sales agent' : 'sales agents'}.`
+          : undefined
+      }
+      {...extra}
+    />
+  );
+}
+
+app.get('/promoters', async (c) => c.html(await promotersPage(c)));
+
+/**
+ * Add sales agents: one by hand, or the whole roster from a file.
+ *
+ * Registered above `/promoters/:id` on purpose, same reason as the questions
+ * import: Hono matches in registration order, and the other way round these
+ * routes would land in the single-promoter lookup with id="import".
+ */
+async function agentImportPage(
+  c: Context<AdminEnv>,
+  extra: Partial<Parameters<typeof AgentImportPage>[0]> = {},
+) {
+  return (
+    <AgentImportPage
+      admin={c.get('admin')}
+      notice={c.req.query('saved') ? 'Added.' : undefined}
+      {...extra}
+    />
+  );
+}
+
+app.get('/promoters/import', async (c) => c.html(await agentImportPage(c)));
+
+/** One agent, added by hand — for a single new hire or a quick correction. */
+app.post(
+  '/promoters',
+  zValidator('form', agentSchema, async (result, c) => {
+    if (!result.success) {
+      const raw = result.data as unknown as Record<string, string>;
+      return c.html(
+        <AgentImportPage
+          admin={await adminOf(c)}
+          singleValues={{
+            agentId: raw?.agentId,
+            name: raw?.name,
+            email: raw?.email,
+            phone: raw?.phone,
+          }}
+          singleErrors={fieldErrors(result.error)}
+        />,
+        400,
+      );
+    }
+  }),
+  async (c) => {
+    await importAgents(dbOf(c), [c.req.valid('form')]);
+    return c.redirect('/admin/promoters/import?saved=1');
+  },
+);
+
+/**
+ * Bulk upload — the whole sheet at once, exported from the main app.
+ * Parsed and validated whole before anything is written — a half-imported
+ * roster leaves an admin unable to tell who is missing.
+ */
+app.post('/promoters/import', async (c) => {
+  const db = dbOf(c);
+  const body = await c.req.parseBody();
+
+  const file = body['file'];
+  const isSpreadsheet =
+    file instanceof File &&
+    (/\.xlsx?$/i.test(file.name) ||
+      file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+      file.type === 'application/vnd.ms-excel');
+
+  const page = (errors: string[]) => agentImportPage(c, { importErrors: errors });
+
+  if (!(file instanceof File) || file.size === 0) {
+    return c.html(await page(['Choose a file first.']), 400);
+  }
+
+  const { rows, error } = isSpreadsheet
+    ? parseAgentRosterWorkbook(await file.arrayBuffer())
+    : parseAgentRoster(await file.text());
+  if (error) return c.html(await page([error]), 400);
+
+  const result = agentImportSchema.safeParse({ agents: rows });
+  if (!result.success) return c.html(await page(agentImportErrors(result.error)), 400);
+
+  const seen = new Set<string>();
+  for (const row of result.data.agents) {
+    if (seen.has(row.agentId)) {
+      return c.html(
+        await page([`Sales Agent ID ${row.agentId} appears more than once in this import.`]),
+        400,
+      );
+    }
+    seen.add(row.agentId);
+  }
+
+  const count = await importAgents(db, result.data.agents);
+  return c.redirect(`/admin/promoters?imported=${count}`);
 });
 
 /** The same bytes the agent uploaded, behind the admin guard. */
@@ -280,6 +404,53 @@ app.get('/promoters/:id', async (c) => {
   );
 });
 
+/* --------------------------------------------------------------- certificate */
+
+/**
+ * Sample data, not a real record — lets an admin check the certificate design
+ * without needing an actual passed attempt sitting around.
+ */
+app.get('/certificate/preview', (c) =>
+  c.html(
+    <CertificatePage
+      certificateId="00000000-0000-0000-0000-000000000000"
+      promoterName="Jane Doe"
+      tier="SP3"
+      score={18}
+      total={20}
+      percent={90}
+      issuedAt={new Date().toISOString()}
+      backHref="/admin/settings"
+      backLabel="Back to settings"
+      isSample
+    />,
+  ),
+);
+
+/** The same certificate a promoter sees for their own passed attempt. */
+app.get('/certificate/:attemptId', async (c) => {
+  const db = dbOf(c);
+  const attempt = await getAttempt(db, c.req.param('attemptId'));
+  if (!attempt || !attempt.passed) return c.notFound();
+
+  const row = await getAttemptWithPromoter(db, attempt.id);
+  if (!row || !attempt.submittedAt) return c.notFound();
+
+  return c.html(
+    <CertificatePage
+      certificateId={attempt.id}
+      promoterName={row.promoter.name}
+      tier={row.promoter.tier}
+      score={attempt.score ?? 0}
+      total={attempt.total ?? 0}
+      percent={attempt.total ? Math.round(((attempt.score ?? 0) / attempt.total) * 100) : 0}
+      issuedAt={attempt.submittedAt}
+      backHref={`/admin/promoters/${row.promoter.id}`}
+      backLabel="Back to sales agent"
+    />,
+  );
+});
+
 /* ----------------------------------------------------------------- questions */
 
 async function questionsPage(
@@ -287,14 +458,16 @@ async function questionsPage(
   extra: Partial<Parameters<typeof QuestionsPage>[0]> = {},
 ) {
   const db = dbOf(c);
-  const questions = await listQuestions(db);
+  const [questions, settings] = await Promise.all([listQuestions(db), getSettings(db)]);
   const editId = c.req.query('edit');
   const imported = c.req.query('imported');
+  const videoError = c.req.query('videoError');
 
   return (
     <QuestionsPage
       admin={c.get('admin')}
       questions={questions}
+      settings={settings}
       editing={editId ? questions.find((q) => q.id === editId) : undefined}
       notice={
         imported
@@ -303,6 +476,7 @@ async function questionsPage(
             ? 'Saved.'
             : undefined
       }
+      videoError={videoError}
       {...extra}
     />
   );
@@ -314,11 +488,13 @@ app.post(
   '/questions',
   zValidator('form', questionSchema, async (result, c) => {
     if (!result.success) {
-      const questions = await listQuestions(dbOf(c));
+      const db = dbOf(c);
+      const [questions, settings] = await Promise.all([listQuestions(db), getSettings(db)]);
       return c.html(
         <QuestionsPage
           admin={await adminOf(c)}
           questions={questions}
+          settings={settings}
           values={rawQuestionValues(result.data as unknown as Record<string, string>)}
           errors={fieldErrors(result.error)}
         />,
@@ -392,19 +568,72 @@ app.post('/questions/import', async (c) => {
   return c.redirect(`/admin/questions?imported=${count}`);
 });
 
+/**
+ * Video upload — training content, so it lives here rather than Settings.
+ *
+ * Registered above `/questions/:id` for the same reason as bulk import: the
+ * other way round, these POSTs land in the single-question editor with
+ * id="video" instead.
+ */
+app.get('/questions/video', async (c) => {
+  const settings = await getSettings(dbOf(c));
+  if (!settings.videoKey) return c.notFound();
+  return serveVideoRange(c, c.env.TRAINING_MEDIA, settings.videoKey);
+});
+
+app.post('/questions/video', async (c) => {
+  const db = dbOf(c);
+  const body = await c.req.parseBody();
+  const file = body['video'];
+
+  const fail = (message: string) =>
+    c.redirect(`/admin/questions?videoError=${encodeURIComponent(message)}`);
+
+  if (!(file instanceof File)) return fail('Choose a video file first.');
+
+  const check = checkVideo(file);
+  if (!check.ok) return fail(check.error);
+
+  const settings = await getSettings(db);
+  const key = videoKeyFor(check.mime);
+
+  await c.env.TRAINING_MEDIA.put(key, await file.arrayBuffer(), {
+    httpMetadata: { contentType: check.mime },
+  });
+
+  // Old object first: an upload that fails validation never reaches here, so
+  // by the time we overwrite the pointer the new object is already durable.
+  if (settings.videoKey) await c.env.TRAINING_MEDIA.delete(settings.videoKey);
+
+  await updateSettings(db, { videoKey: key });
+  return c.redirect('/admin/questions?saved=1');
+});
+
+app.post('/questions/video/remove', async (c) => {
+  const db = dbOf(c);
+  const settings = await getSettings(db);
+  if (settings.videoKey) {
+    await c.env.TRAINING_MEDIA.delete(settings.videoKey);
+    await updateSettings(db, { videoKey: null });
+  }
+  return c.redirect('/admin/questions?saved=1');
+});
+
 app.post(
   '/questions/:id',
   zValidator('form', questionSchema, async (result, c) => {
     if (!result.success) {
       const db = dbOf(c);
-      const [questions, editing] = await Promise.all([
+      const [questions, editing, settings] = await Promise.all([
         listQuestions(db),
         getQuestion(db, c.req.param('id') ?? ''),
+        getSettings(db),
       ]);
       return c.html(
         <QuestionsPage
           admin={await adminOf(c)}
           questions={questions}
+          settings={settings}
           editing={editing}
           values={rawQuestionValues(result.data as unknown as Record<string, string>)}
           errors={fieldErrors(result.error)}
@@ -426,18 +655,29 @@ app.post('/questions/:id/toggle', async (c) => {
 
 /* ------------------------------------------------------------------ settings */
 
+/**
+ * A regular admin's own account is the only one they get sent — not just
+ * hidden in the UI, since the point is that other admins' emails never reach
+ * a screen that isn't the super admin's.
+ */
+function scopedAdmins(admin: Admin, all: Admin[]): Admin[] {
+  return admin.isSuperAdmin ? all : all.filter((a) => a.id === admin.id);
+}
+
 /** Settings is two forms on one page, so every render of it needs both. */
 async function settingsPage(
   c: Context<AdminEnv>,
   extra: Partial<Parameters<typeof SettingsPage>[0]> = {},
 ) {
   const db = dbOf(c);
-  const [settings, admins] = await Promise.all([getSettings(db), listAdmins(db)]);
+  const admin = c.get('admin');
+  const [settings, allAdmins] = await Promise.all([getSettings(db), listAdmins(db)]);
+
   return (
     <SettingsPage
-      admin={c.get('admin')}
+      admin={admin}
       settings={settings}
-      admins={admins}
+      admins={scopedAdmins(admin, allAdmins)}
       notice={c.req.query('saved') ? 'Saved.' : undefined}
       {...extra}
     />
@@ -451,12 +691,13 @@ app.post(
   zValidator('form', settingsSchema, async (result, c) => {
     if (!result.success) {
       const db = dbOf(c);
-      const [settings, admins] = await Promise.all([getSettings(db), listAdmins(db)]);
+      const admin = await adminOf(c);
+      const [settings, allAdmins] = await Promise.all([getSettings(db), listAdmins(db)]);
       return c.html(
         <SettingsPage
-          admin={await adminOf(c)}
+          admin={admin}
           settings={settings}
-          admins={admins}
+          admins={scopedAdmins(admin, allAdmins)}
           errors={fieldErrors(result.error)}
         />,
         400,
@@ -467,40 +708,29 @@ app.post(
     const db = dbOf(c);
     const input = c.req.valid('form');
 
-    // Admins paste normal share links; we store the embed URL so /learn does no
-    // parsing at render. Reject anything else by name, not with a generic error.
     const errors: Record<string, string> = {};
-    const slidesUrl = input.slidesUrl ? toSlidesEmbed(input.slidesUrl) : null;
-    const videoUrl = input.videoUrl ? toVideoEmbed(input.videoUrl) : null;
 
     // The support number is stored in the same +234 form as a promoter's, so
     // the Support screen can format it with the same helper.
     const supportPhone = input.supportPhone ? normalizePhone(input.supportPhone) : null;
 
-    if (input.slidesUrl && !slidesUrl) {
-      errors.slidesUrl = 'Expected a link like https://docs.google.com/presentation/d/<ID>/edit';
-    }
-    if (input.videoUrl && !videoUrl) {
-      errors.videoUrl = 'Expected a link like https://drive.google.com/file/d/<ID>/view';
-    }
     if (input.supportPhone && !supportPhone) {
       errors.supportPhone = 'That does not look like a Nigerian number. Try 08012345678.';
     }
 
     if (Object.keys(errors).length > 0) {
-      const [settings, admins] = await Promise.all([getSettings(db), listAdmins(db)]);
+      const admin = c.get('admin');
+      const [settings, allAdmins] = await Promise.all([getSettings(db), listAdmins(db)]);
       return c.html(
         <SettingsPage
-          admin={c.get('admin')}
+          admin={admin}
           settings={{
             ...settings,
             passMark: input.passMark,
             minTutorialSeconds: input.minTutorialSeconds,
           }}
-          admins={admins}
+          admins={scopedAdmins(admin, allAdmins)}
           values={{
-            slidesUrl: input.slidesUrl,
-            videoUrl: input.videoUrl,
             supportPhone: input.supportPhone,
             supportEmail: input.supportEmail,
           }}
@@ -510,9 +740,10 @@ app.post(
       );
     }
 
+    // Neither slidesUrl nor videoUrl is touched here — this form no longer
+    // offers either. videoUrl only ever changes via /questions/video(/remove)
+    // now; slidesUrl has no admin UI left to change it at all.
     await updateSettings(db, {
-      slidesUrl,
-      videoUrl,
       passMark: input.passMark,
       minTutorialSeconds: input.minTutorialSeconds,
       supportPhone,
@@ -525,18 +756,29 @@ app.post(
 
 /* ---------------------------------------------------------------------- team */
 
+/**
+ * Only the super admin can grow the team — "the admin that can create another
+ * admin is the super admin" is the whole rule. Everyone else gets redirected
+ * back with nothing changed rather than a 403 page, same treatment as any
+ * other console guard here.
+ */
 app.post(
   '/team',
+  async (c, next) => {
+    if (!c.get('admin').isSuperAdmin) return c.redirect('/admin/settings');
+    await next();
+  },
   zValidator('form', adminInviteSchema, async (result, c) => {
     if (!result.success) {
       const db = dbOf(c);
+      const admin = await adminOf(c);
       const raw = result.data as unknown as Record<string, string>;
-      const [settings, admins] = await Promise.all([getSettings(db), listAdmins(db)]);
+      const [settings, allAdmins] = await Promise.all([getSettings(db), listAdmins(db)]);
       return c.html(
         <SettingsPage
-          admin={await adminOf(c)}
+          admin={admin}
           settings={settings}
-          admins={admins}
+          admins={scopedAdmins(admin, allAdmins)}
           teamValues={{ name: raw?.name, email: raw?.email }}
           teamErrors={fieldErrors(result.error)}
         />,
